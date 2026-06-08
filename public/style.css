@@ -577,7 +577,7 @@ body {
 }
 
 .card-notes {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 8px;
   line-height: 1.5;
@@ -1235,17 +1235,17 @@ body {
 
 .detail-layout {
   display: flex;
-  min-height: 500px;
+  flex-direction: column;
   max-height: calc(90vh - 2px);
 }
 
 .detail-poster-col {
   flex-shrink: 0;
-  width: 250px;
+  height: 40vh;
   background: var(--bg-deep);
   position: relative;
   overflow: hidden;
-  border-right: 1px solid var(--metal-edge);
+  border-bottom: 1px solid var(--metal-edge);
 }
 
 .detail-poster-col::after {
@@ -1287,9 +1287,8 @@ body {
 .detail-info-col {
   flex: 1;
   padding: 28px 32px 24px;
-  overflow-y: auto;
+  overflow-y: visible;
   min-width: 0;
-  max-height: calc(90vh - 2px);
 }
 
 .detail-title {

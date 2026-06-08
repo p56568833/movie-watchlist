@@ -1,3 +1,5 @@
+https://raw.githubusercontent.com/p56568833/movie-watchlist/405b87b/public/app.js
+
 /* ═══════════════════════════════════════════════════════
    CC 铁皮电影盘 · APP v3
    TMDB 即搜即加 + 多片单
@@ -254,6 +256,10 @@ function createMovieCard(movie, index) {
   const dir = document.createElement('p');
   dir.className = 'card-director'; dir.textContent = movie.director || '';
 
+  const status = document.createElement('span');
+  status.className = `card-status ${movie.status}`;
+  status.textContent = movie.status === 'watched' ? '已看' : '想看';
+
   const tagsDiv = document.createElement('div');
   tagsDiv.className = 'card-tags';
   (Array.isArray(movie.tags) ? movie.tags : []).forEach(tag => {
@@ -265,6 +271,7 @@ function createMovieCard(movie, index) {
 
   body.appendChild(titleRow);
   if (movie.director) body.appendChild(dir);
+  body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
 
   // Notes preview
@@ -621,19 +628,6 @@ tmdbDropdown.addEventListener('click', async (e) => {
   btn.textContent = '添加中…';
   btn.disabled = true;
 
-  // Fetch TMDB genres for auto-tagging
-  let genres = [];
-  if (tmdbKey) {
-    try {
-      const detailsUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&language=zh-CN`;
-      const detailsRes = await fetch(detailsUrl);
-      if (detailsRes.ok) {
-        const details = await detailsRes.json();
-        genres = (details.genres || []).map(g => g.name);
-      }
-    } catch { /* ignore, just use empty tags */ }
-  }
-
   try {
     await api(`/api/lists/${state.currentListId}/movies`, {
       method: 'POST',
@@ -644,7 +638,7 @@ tmdbDropdown.addEventListener('click', async (e) => {
         tmdb_id: tmdbId,
         rating: 0,
         status: 'want_to_watch',
-        tags: genres,
+        tags: [],
         notes: overview || '',
       }),
     });
