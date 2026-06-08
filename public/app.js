@@ -300,6 +300,7 @@ let currentDetailMovie = null;
 
 async function openDetail(movie) {
   currentDetailMovie = movie;
+  $('#floatingDeleteBtn').classList.remove('hidden');
   const overlay = $('#detailOverlay');
   overlay.classList.remove('hidden');
 
@@ -360,6 +361,7 @@ async function openDetail(movie) {
 
 function closeDetail() {
   $('#detailOverlay').classList.add('hidden');
+  $('#floatingDeleteBtn').classList.add('hidden');
   currentDetailMovie = null;
 }
 
@@ -425,7 +427,7 @@ $('#detailEditBtn').addEventListener('click', () => {
   setTimeout(() => openEditModal(currentDetailMovie), 200);
 });
 
-$('#detailDeleteBtn').addEventListener('click', () => {
+$('#floatingDeleteBtn').addEventListener('click', () => {
   if (!currentDetailMovie) return;
   if (!confirm(`确定删除《${currentDetailMovie.title}》？`)) return;
   deleteMovie(currentDetailMovie.id).then(() => closeDetail());
