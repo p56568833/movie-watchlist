@@ -15,7 +15,7 @@ RUN mkdir -p /data && chown node:node /data
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY package.json ./
-COPY server.js db.js ./
+COPY server.js app.js db.js ./
 COPY public ./public
 
 ENV DB_PATH=/data/movies.db
