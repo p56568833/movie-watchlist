@@ -532,7 +532,7 @@ body {
 .card-poster {
   width: 100%;
   height: auto;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 3 / 4;
   background:
     linear-gradient(135deg, rgba(200,55,55,0.08), transparent 28%),
     linear-gradient(145deg, #101010 0%, #202020 48%, #111 100%);
@@ -571,8 +571,8 @@ body {
   right: 0;
   bottom: 0;
   z-index: 2;
-  padding: 34px 18px 16px;
-  background: linear-gradient(180deg, transparent 0%, rgba(7,7,7,0.8) 28%, rgba(7,7,7,0.95) 100%);
+  padding: 20px 18px 14px;
+  background: linear-gradient(180deg, transparent 0%, rgba(7,7,7,0.8) 20%, rgba(7,7,7,0.95) 100%);
 }
 
 .card-title-row {
@@ -1291,9 +1291,9 @@ body {
 
 .detail-poster-col {
   flex-shrink: 0;
-  height: clamp(220px, 34vh, 320px);
-  max-height: 320px;
-  min-height: 220px;
+  height: clamp(240px, 36vh, 340px);
+  max-height: 340px;
+  min-height: 240px;
   background:
     linear-gradient(145deg, rgba(200,55,55,0.08), transparent 32%),
     var(--bg-deep);
@@ -1302,11 +1302,11 @@ body {
   justify-content: center;
   border-right: none;
   border-bottom: 1px solid var(--metal-edge);
-  padding: 18px;
+  padding: 0;
 }
 
 .detail-poster-wrap {
-  width: min(190px, 30vw);
+  width: auto;
   height: 100%;
   aspect-ratio: 2 / 3;
   display: flex;
@@ -1321,7 +1321,7 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   background: #090909;
 }
 
@@ -1703,14 +1703,14 @@ body {
     flex-shrink: 0;
     border-right: none;
     border-bottom: 1px solid var(--metal-edge);
-    padding: 14px;
+    padding: 0;
   }
   .detail-poster-wrap {
-    width: min(38vw, 148px);
-    min-width: 118px;
+    width: auto;
+    height: 100%;
   }
-  .detail-poster-img { object-fit: contain; }
-  .detail-poster-placeholder { height: 200px; }
+  .detail-poster-img { object-fit: cover; }
+  .detail-poster-placeholder { height: 100%; }
   .detail-info-col { padding: 20px 16px 16px; max-height: none; }
   .detail-title { font-size: 1.3rem; }
   .detail-panel { max-width: 100%; margin: 8px; max-height: calc(100vh - 16px); }
