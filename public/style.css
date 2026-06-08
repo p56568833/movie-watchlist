@@ -749,13 +749,12 @@ body {
   box-shadow: 0 0 0 4px rgba(196,162,101,0.08);
 }
 
-/* Add button next to search */
-.btn-add-small {
-  padding: 12px 14px;
+/* Add button next to search — now full size with text */
+.tmdb-search-wrap .btn-add {
   flex-shrink: 0;
+  padding: 12px 18px;
+  font-size: 0.85rem;
 }
-
-.btn-add-small span { display: none; }
 
 /* TMDB dropdown */
 .tmdb-dropdown {
@@ -871,9 +870,14 @@ body {
 
 .tmdb-hint {
   text-align: center;
-  padding: 12px 0 4px;
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  padding: 16px 20px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  background: rgba(196,162,101,0.05);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+  line-height: 1.7;
 }
 
 .tmdb-hint.hidden { display: none; }

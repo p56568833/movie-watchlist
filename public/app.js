@@ -443,6 +443,9 @@ const tmdbSearchInput = $('#tmdbSearch');
 const tmdbDropdown = $('#tmdbDropdown');
 const tmdbHint = $('#tmdbHint');
 
+// Show hint on load if no key
+if (!tmdbKey) tmdbHint.classList.remove('hidden');
+
 tmdbSearchInput.addEventListener('input', () => {
   clearTimeout(tmdbTimer);
   const q = tmdbSearchInput.value.trim();
