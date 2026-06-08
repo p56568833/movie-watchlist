@@ -271,6 +271,15 @@ function createMovieCard(movie, index) {
   if (movie.director) body.appendChild(dir);
   body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
+
+  // Notes preview
+  if (movie.notes) {
+    const notesEl = document.createElement('p');
+    notesEl.className = 'card-notes';
+    notesEl.textContent = movie.notes.length > 80 ? movie.notes.slice(0, 80) + '…' : movie.notes;
+    body.appendChild(notesEl);
+  }
+
   card.appendChild(poster); card.appendChild(body);
   return card;
 }
@@ -569,6 +578,7 @@ async function searchTMDB(query) {
         title: m.title,
         year: m.release_date ? m.release_date.slice(0, 4) : '',
         poster_path: m.poster_path || '',
+        overview: m.overview || '',
       });
     });
 
@@ -611,7 +621,7 @@ tmdbDropdown.addEventListener('click', async (e) => {
   const tmdbId = Number(item.dataset.tmdbId);
   const cached = tmdbSearchCache.get(tmdbId);
   if (!cached) return;
-  const { title, year, poster_path: posterPath } = cached;
+  const { title, year, overview, poster_path: posterPath } = cached;
 
   btn.textContent = '添加中…';
   btn.disabled = true;
@@ -627,6 +637,7 @@ tmdbDropdown.addEventListener('click', async (e) => {
         rating: 0,
         status: 'want_to_watch',
         tags: [],
+        notes: overview || '',
       }),
     });
     showToast(`已添加《${title}》`);
