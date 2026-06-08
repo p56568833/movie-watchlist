@@ -11,7 +11,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Create data directory for SQLite volume
-RUN mkdir -p /data
+RUN mkdir -p /data && chown node:node /data
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY package.json ./
