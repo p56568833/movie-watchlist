@@ -208,6 +208,15 @@ function createMovieCard(movie, index) {
   card.className = 'movie-card';
   card.style.animationDelay = `${index * 0.04}s`;
   card.dataset.id = movie.id;
+  card.addEventListener('click', () => openDetail(movie));
+
+  // Delete X button (top-right)
+  const delX = document.createElement('button');
+  delX.className = 'card-delete-btn';
+  delX.innerHTML = '✕';
+  delX.title = '删除';
+  delX.addEventListener('click', (e) => { e.stopPropagation(); deleteMovie(movie.id); });
+  card.appendChild(delX);
 
   const poster = document.createElement('div');
   poster.className = 'card-poster';
@@ -215,9 +224,9 @@ function createMovieCard(movie, index) {
   if (url) {
     const img = document.createElement('img');
     img.src = url; img.alt = movie.title; img.loading = 'lazy';
-    img.onerror = () => { img.remove(); poster.appendChild(placeholderEl()); };
+    img.onerror = () => { img.remove(); poster.appendChild(placeholderEl(movie)); };
     poster.appendChild(img);
-  } else { poster.appendChild(placeholderEl()); }
+  } else { poster.appendChild(placeholderEl(movie)); }
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -254,32 +263,168 @@ function createMovieCard(movie, index) {
     tagsDiv.appendChild(chip);
   });
 
-  const actions = document.createElement('div');
-  actions.className = 'card-actions';
-  const editBtn = document.createElement('button');
-  editBtn.className = 'card-action'; editBtn.textContent = '编辑';
-  editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(movie); });
-  const delBtn = document.createElement('button');
-  delBtn.className = 'card-action delete'; delBtn.textContent = '删除';
-  delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMovie(movie.id); });
-  actions.appendChild(editBtn); actions.appendChild(delBtn);
-
   body.appendChild(titleRow);
   if (movie.director) body.appendChild(dir);
   body.appendChild(stars);
   body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
-  body.appendChild(actions);
   card.appendChild(poster); card.appendChild(body);
   return card;
 }
 
-function placeholderEl() {
+function placeholderEl(movie) {
   const d = document.createElement('div');
   d.className = 'card-poster-placeholder';
-  d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>NO ARTWORK</span>`;
+  const letter = (movie?.title || '?').charAt(0);
+  d.innerHTML = `<span>${esc(letter)}</span>`;
   return d;
 }
+
+// ═══════════════════════════════════════════════════════
+//  MOVIE DETAIL VIEW
+// ═══════════════════════════════════════════════════════
+
+let currentDetailMovie = null;
+
+async function openDetail(movie) {
+  currentDetailMovie = movie;
+  const overlay = $('#detailOverlay');
+  overlay.classList.remove('hidden');
+
+  // Reset
+  $('#detailPoster').src = '';
+  $('#detailNoPoster').classList.add('hidden');
+  $('#detailTitle').textContent = movie.title;
+  $('#detailYear').textContent = movie.year || '';
+  $('#detailRuntime').textContent = '';
+  $('#detailGenres').textContent = '';
+  $('#detailTmdbRating').classList.add('hidden');
+  $('#detailTmdbRating').innerHTML = '';
+  $('#detailOverview').textContent = '加载中…';
+  $('#detailCast').innerHTML = '<span class="detail-loading">加载中…</span>';
+  $('#detailDirector').innerHTML = '';
+  $('#detailTagsRow').classList.add('hidden');
+  $('#detailNotesRow').classList.add('hidden');
+
+  // Poster
+  const url = posterUrl(movie);
+  if (url) {
+    $('#detailPoster').src = url;
+  } else {
+    $('#detailNoPoster').classList.remove('hidden');
+  }
+
+  // User data
+  let starsHtml = '';
+  for (let i = 1; i <= 5; i++) starsHtml += i <= movie.rating ? '★' : '☆';
+  $('#detailStars').textContent = starsHtml;
+
+  const statusEl = $('#detailStatus');
+  statusEl.textContent = movie.status === 'watched' ? '已看' : '想看';
+  statusEl.className = 'detail-status-badge ' + movie.status;
+
+  const tags = Array.isArray(movie.tags) ? movie.tags : [];
+  if (tags.length > 0) {
+    $('#detailTags').innerHTML = tags.map(t => `<span class="detail-tag">${esc(t)}</span>`).join('');
+    $('#detailTagsRow').classList.remove('hidden');
+  }
+
+  if (movie.notes) {
+    $('#detailNotes').textContent = movie.notes;
+    $('#detailNotesRow').classList.remove('hidden');
+  }
+
+  if (movie.director) {
+    $('#detailDirector').innerHTML = `<strong>导演</strong> ${esc(movie.director)}`;
+  }
+
+  // Fetch TMDB details
+  if (movie.tmdb_id && tmdbKey) {
+    try {
+      const tmdb = await fetchTMDBDetails(movie.tmdb_id);
+      renderTMDBDetails(tmdb);
+    } catch {
+      $('#detailCast').innerHTML = '';
+      $('#detailOverview').textContent = movie.notes || '暂无简介';
+    }
+  } else {
+    $('#detailCast').innerHTML = '';
+    $('#detailOverview').textContent = movie.notes || '暂无简介。可在编辑中添加备注。';
+  }
+}
+
+function closeDetail() {
+  $('#detailOverlay').classList.add('hidden');
+  currentDetailMovie = null;
+}
+
+async function fetchTMDBDetails(tmdbId) {
+  const url = `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&language=zh-CN&append_to_response=credits`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('TMDB fetch failed');
+  return res.json();
+}
+
+function renderTMDBDetails(tmdb) {
+  // Meta
+  if (tmdb.release_date) {
+    $('#detailYear').textContent = tmdb.release_date.slice(0, 4);
+  }
+  if (tmdb.runtime) {
+    $('#detailRuntime').textContent = `${tmdb.runtime} 分钟`;
+  }
+  if (tmdb.genres?.length) {
+    $('#detailGenres').textContent = tmdb.genres.map(g => g.name).join(' / ');
+  }
+
+  // TMDB rating
+  if (tmdb.vote_average) {
+    $('#detailTmdbRating').classList.remove('hidden');
+    $('#detailTmdbRating').innerHTML = `
+      <span class="tmdb-star">★</span>
+      <span class="tmdb-score">${tmdb.vote_average.toFixed(1)}</span>
+      <span class="tmdb-votes">(${tmdb.vote_count} 票)</span>
+    `;
+  }
+
+  // Director (from credits)
+  if (tmdb.credits?.crew) {
+    const directors = tmdb.credits.crew.filter(c => c.job === 'Director').map(c => c.name);
+    if (directors.length > 0) {
+      $('#detailDirector').innerHTML = `<strong>导演</strong> ${esc(directors.join('、'))}`;
+    }
+  }
+
+  // Cast
+  if (tmdb.credits?.cast?.length) {
+    $('#detailCast').innerHTML = tmdb.credits.cast.slice(0, 12).map(c =>
+      `<span class="detail-cast-chip">${esc(c.name)}</span>`
+    ).join('');
+  } else {
+    $('#detailCast').innerHTML = '';
+  }
+
+  // Overview
+  $('#detailOverview').textContent = tmdb.overview || '暂无简介';
+}
+
+// Detail actions
+$('#detailClose').addEventListener('click', closeDetail);
+$('#detailOverlay').addEventListener('click', (e) => {
+  if (e.target === $('#detailOverlay')) closeDetail();
+});
+
+$('#detailEditBtn').addEventListener('click', () => {
+  if (!currentDetailMovie) return;
+  closeDetail();
+  setTimeout(() => openEditModal(currentDetailMovie), 200);
+});
+
+$('#detailDeleteBtn').addEventListener('click', () => {
+  if (!currentDetailMovie) return;
+  if (!confirm(`确定删除《${currentDetailMovie.title}》？`)) return;
+  deleteMovie(currentDetailMovie.id).then(() => closeDetail());
+});
 
 async function deleteMovie(id) {
   if (!confirm('确定删除？')) return;
@@ -643,6 +788,7 @@ function setupEvents() {
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (!$('#modalOverlay').classList.contains('hidden')) closeModal();
+    else if (!$('#detailOverlay').classList.contains('hidden')) closeDetail();
     else if (!$('#settingsOverlay').classList.contains('hidden')) closeSettings();
     else if (!$('#listModalOverlay').classList.contains('hidden')) closeListModal();
     else closeDropdown();

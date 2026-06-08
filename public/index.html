@@ -209,6 +209,96 @@
     </div>
   </div>
 
+  <!-- ════ Movie Detail Modal ════ -->
+  <div class="modal-overlay hidden" id="detailOverlay">
+    <div class="detail-panel">
+      <button class="detail-close" id="detailClose">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="detail-layout">
+        <!-- Left: Poster -->
+        <div class="detail-poster-col">
+          <div class="detail-poster-wrap">
+            <img id="detailPoster" class="detail-poster-img" src="" alt="">
+            <div class="detail-poster-placeholder hidden" id="detailNoPoster">
+              <span class="detail-no-poster-letter">🎬</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Info -->
+        <div class="detail-info-col">
+          <h1 class="detail-title" id="detailTitle"></h1>
+          <div class="detail-meta-row">
+            <span class="detail-meta" id="detailYear"></span>
+            <span class="detail-meta-sep">·</span>
+            <span class="detail-meta" id="detailRuntime"></span>
+            <span class="detail-meta-sep">·</span>
+            <span class="detail-meta" id="detailGenres"></span>
+          </div>
+
+          <!-- TMDB rating -->
+          <div class="detail-tmdb-rating" id="detailTmdbRating"></div>
+
+          <!-- User data -->
+          <div class="detail-user-section">
+            <div class="detail-user-row">
+              <span class="detail-user-label">我的评分</span>
+              <span class="detail-user-stars" id="detailStars"></span>
+            </div>
+            <div class="detail-user-row">
+              <span class="detail-user-label">状态</span>
+              <span class="detail-status-badge" id="detailStatus"></span>
+            </div>
+            <div class="detail-user-row" id="detailTagsRow">
+              <span class="detail-user-label">标签</span>
+              <span class="detail-user-tags" id="detailTags"></span>
+            </div>
+            <div class="detail-user-row" id="detailNotesRow">
+              <span class="detail-user-label">备注</span>
+              <p class="detail-user-notes" id="detailNotes"></p>
+            </div>
+          </div>
+
+          <!-- Director -->
+          <div class="detail-crew" id="detailDirector"></div>
+
+          <!-- Cast -->
+          <div class="detail-section">
+            <h3 class="detail-section-title">演员</h3>
+            <div class="detail-cast" id="detailCast"></div>
+          </div>
+
+          <!-- Overview -->
+          <div class="detail-section">
+            <h3 class="detail-section-title">简介</h3>
+            <p class="detail-overview" id="detailOverview"></p>
+          </div>
+
+          <!-- Actions -->
+          <div class="detail-actions">
+            <button class="btn" id="detailEditBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              编辑
+            </button>
+            <button class="btn btn-danger-outline" id="detailDeleteBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              删除
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ════ Settings Modal ════ -->
   <div class="modal-overlay hidden" id="settingsOverlay">
     <div class="modal modal-sm">
