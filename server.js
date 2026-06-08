@@ -145,6 +145,21 @@ function safeParseTags(tags) {
 
 // ── Start ─────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`🎬 Movie Watchlist running at http://localhost:${PORT}`);
+const os = require('os');
+
+function getLocalIP() {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) return net.address;
+    }
+  }
+  return 'localhost';
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  const ip = getLocalIP();
+  console.log(`🎬 Movie Watchlist running at:`);
+  console.log(`   本机访问: http://localhost:${PORT}`);
+  console.log(`   手机访问: http://${ip}:${PORT}`);
 });
