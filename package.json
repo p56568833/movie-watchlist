@@ -1,0 +1,14 @@
+{
+  "name": "movie-watchlist",
+  "version": "1.0.0",
+  "description": "CC 铁皮电影盘风格 · 电影片单收藏",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "sql.js": "^1.12.0"
+  }
+}
