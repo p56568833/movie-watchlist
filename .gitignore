@@ -5,3 +5,4 @@ node_modules/
 *.db-shm
 .DS_Store
 _tmp_files.txt
+.reasonix/
