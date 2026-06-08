@@ -20,7 +20,6 @@ const state = {
   editingId: null,
   formTags: [],
   formRating: 0,
-  formStatus: 'watched',
   // Track which TMDB IDs are already in current list
   existingTmdbIds: new Set(),
 };
@@ -255,10 +254,6 @@ function createMovieCard(movie, index) {
   const dir = document.createElement('p');
   dir.className = 'card-director'; dir.textContent = movie.director || '';
 
-  const status = document.createElement('span');
-  status.className = `card-status ${movie.status || 'want_to_watch'}`;
-  status.textContent = movie.status === 'watched' ? '已看' : '想看';
-
   const tagsDiv = document.createElement('div');
   tagsDiv.className = 'card-tags';
   (Array.isArray(movie.tags) ? movie.tags : []).forEach(tag => {
@@ -270,7 +265,6 @@ function createMovieCard(movie, index) {
 
   body.appendChild(titleRow);
   if (movie.director) body.appendChild(dir);
-  body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
 
   // Notes preview
@@ -333,11 +327,6 @@ async function openDetail(movie) {
   } else {
     $('#detailNoPoster').classList.remove('hidden');
   }
-
-  // User data
-  const statusEl = $('#detailStatus');
-  statusEl.textContent = movie.status === 'watched' ? '已看' : '想看';
-  statusEl.className = 'detail-status-badge ' + movie.status;
 
   const tags = Array.isArray(movie.tags) ? movie.tags : [];
   if (tags.length > 0) {
@@ -656,7 +645,7 @@ tmdbDropdown.addEventListener('click', async (e) => {
         poster_path: posterPath,
         tmdb_id: tmdbId,
         rating: 0,
-        status: 'want_to_watch',
+        status: 'watched',
         tags: genres,
         notes: overview || '',
       }),
@@ -705,12 +694,10 @@ $('#listSearch').addEventListener('input', () => {
 function openAddModal() {
   state.editingId = null;
   state.formTags = [];
-  state.formStatus = 'watched';
   $('#modalTitle').textContent = '手动添加电影';
   $('#movieForm').reset();
   $('#formMovieId').value = '';
   $('#formYear').value = '';
-  renderFormStatus();
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
   $('#formTitle').focus();
@@ -719,29 +706,18 @@ function openAddModal() {
 function openEditModal(movie) {
   state.editingId = movie.id;
   state.formTags = Array.isArray(movie.tags) ? [...movie.tags] : [];
-  state.formStatus = movie.status || 'watched';
   $('#modalTitle').textContent = '编辑电影';
   $('#formMovieId').value = movie.id;
   $('#formTitle').value = movie.title;
   $('#formYear').value = movie.year || '';
   $('#formDirector').value = movie.director || '';
   $('#formNotes').value = movie.notes || '';
-  renderFormStatus();
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
   $('#formTitle').focus();
 }
 
 function closeModal() { $('#modalOverlay').classList.add('hidden'); state.editingId = null; }
-
-// Status
-function renderFormStatus() {
-  $$('#formStatus .status-option').forEach(o => o.classList.toggle('active', o.dataset.status === state.formStatus));
-}
-$('#formStatus').addEventListener('click', (e) => {
-  const opt = e.target.closest('.status-option'); if (!opt) return;
-  state.formStatus = opt.dataset.status; renderFormStatus();
-});
 
 // Tags
 function renderFormTags() {
@@ -775,7 +751,7 @@ $('#movieForm').addEventListener('submit', async (e) => {
     year: $('#formYear').value ? Number($('#formYear').value) : null,
     director: $('#formDirector').value.trim(),
     rating: 0,
-    status: state.formStatus,
+    status: 'watched',
     notes: $('#formNotes').value.trim(),
     tags: state.formTags,
     poster_path: '',
