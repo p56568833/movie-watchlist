@@ -227,7 +227,7 @@ function createMovieCard(movie, index) {
   delX.className = 'card-delete-btn';
   delX.innerHTML = '✕';
   delX.title = '删除';
-  delX.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`确定删除《${movie.title}》？`)) deleteMovie(movie.id); });
+  delX.addEventListener('click', (e) => { e.stopPropagation(); showDeletePopover(delX, movie); });
   card.appendChild(delX);
 
   const poster = document.createElement('div');
@@ -254,14 +254,6 @@ function createMovieCard(movie, index) {
   const dir = document.createElement('p');
   dir.className = 'card-director'; dir.textContent = movie.director || '';
 
-  const stars = document.createElement('div');
-  stars.className = 'card-stars';
-  for (let i = 1; i <= 5; i++) {
-    const s = document.createElement('span');
-    s.className = 'card-star' + (i <= movie.rating ? ' filled' : '');
-    s.textContent = '★'; stars.appendChild(s);
-  }
-
   const status = document.createElement('span');
   status.className = `card-status ${movie.status}`;
   status.textContent = movie.status === 'watched' ? '已看' : '想看';
@@ -277,7 +269,6 @@ function createMovieCard(movie, index) {
 
   body.appendChild(titleRow);
   if (movie.director) body.appendChild(dir);
-  body.appendChild(stars);
   body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
   card.appendChild(poster); card.appendChild(body);
@@ -327,10 +318,6 @@ async function openDetail(movie) {
   }
 
   // User data
-  let starsHtml = '';
-  for (let i = 1; i <= 5; i++) starsHtml += i <= movie.rating ? '★' : '☆';
-  $('#detailStars').textContent = starsHtml;
-
   const statusEl = $('#detailStatus');
   statusEl.textContent = movie.status === 'watched' ? '已看' : '想看';
   statusEl.className = 'detail-status-badge ' + movie.status;
@@ -444,6 +431,85 @@ async function deleteMovie(id) {
     showToast('已删除'); await loadMovies();
   } catch (err) { showToast('删除失败', true); }
 }
+
+// ═══════════════════════════════════════════════════════
+//  DELETE CONFIRM POPOVER
+// ═══════════════════════════════════════════════════════
+
+let deletePopover = null;
+let deletePopoverTarget = null;
+
+function ensureDeletePopover() {
+  if (deletePopover) return;
+  deletePopover = document.createElement('div');
+  deletePopover.className = 'delete-popover';
+  deletePopover.innerHTML = `
+    <div class="delete-popover-text"></div>
+    <div class="delete-popover-actions">
+      <button class="delete-popover-btn cancel">取消</button>
+      <button class="delete-popover-btn confirm">确认删除</button>
+    </div>
+  `;
+  document.body.appendChild(deletePopover);
+
+  // Cancel button
+  deletePopover.querySelector('.cancel').addEventListener('click', closeDeletePopover);
+}
+
+function showDeletePopover(btn, movie) {
+  ensureDeletePopover();
+  closeDeletePopover(); // close any existing first
+
+  deletePopoverTarget = movie;
+
+  // Set text
+  deletePopover.querySelector('.delete-popover-text').innerHTML =
+    `确定删除 <strong>《${esc(movie.title)}》</strong>？`;
+
+  // Bind confirm
+  const confirmBtn = deletePopover.querySelector('.confirm');
+  const handler = async () => {
+    closeDeletePopover();
+    await deleteMovie(movie.id);
+  };
+  confirmBtn.onclick = handler;
+
+  // Position near the button
+  const rect = btn.getBoundingClientRect();
+  const popoverW = 220;
+  let left = rect.left - popoverW + rect.width / 2;
+  let top = rect.bottom + 8;
+
+  // Keep within viewport
+  if (left < 8) left = 8;
+  if (left + popoverW > window.innerWidth - 8) left = window.innerWidth - popoverW - 8;
+  if (top + 100 > window.innerHeight) top = rect.top - 100;
+
+  deletePopover.style.left = left + 'px';
+  deletePopover.style.top = top + 'px';
+  deletePopover.classList.add('active');
+}
+
+function closeDeletePopover() {
+  if (!deletePopover) return;
+  deletePopover.classList.remove('active');
+  deletePopoverTarget = null;
+}
+
+// Global click to close popover
+document.addEventListener('click', (e) => {
+  if (!deletePopover || !deletePopover.classList.contains('active')) return;
+  if (!deletePopover.contains(e.target) && !e.target.closest('.card-delete-btn')) {
+    closeDeletePopover();
+  }
+});
+
+// Close on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && deletePopover && deletePopover.classList.contains('active')) {
+    closeDeletePopover();
+  }
+});
 
 // ═══════════════════════════════════════════════════════
 //  TMDB SEARCH (main bar)
@@ -607,13 +673,11 @@ $('#listSearch').addEventListener('input', () => {
 function openAddModal() {
   state.editingId = null;
   state.formTags = [];
-  state.formRating = 0;
   state.formStatus = 'watched';
   $('#modalTitle').textContent = '手动添加电影';
   $('#movieForm').reset();
   $('#formMovieId').value = '';
   $('#formYear').value = '';
-  renderFormStars();
   renderFormStatus();
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
@@ -623,7 +687,6 @@ function openAddModal() {
 function openEditModal(movie) {
   state.editingId = movie.id;
   state.formTags = Array.isArray(movie.tags) ? [...movie.tags] : [];
-  state.formRating = movie.rating || 0;
   state.formStatus = movie.status || 'watched';
   $('#modalTitle').textContent = '编辑电影';
   $('#formMovieId').value = movie.id;
@@ -631,7 +694,6 @@ function openEditModal(movie) {
   $('#formYear').value = movie.year || '';
   $('#formDirector').value = movie.director || '';
   $('#formNotes').value = movie.notes || '';
-  renderFormStars();
   renderFormStatus();
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
@@ -639,20 +701,6 @@ function openEditModal(movie) {
 }
 
 function closeModal() { $('#modalOverlay').classList.add('hidden'); state.editingId = null; }
-
-// Stars
-function renderFormStars() {
-  $$('#formStars .star').forEach(s => s.classList.toggle('active', Number(s.dataset.value) <= state.formRating));
-}
-$('#formStars').addEventListener('click', (e) => {
-  const star = e.target.closest('.star'); if (!star) return;
-  state.formRating = Number(star.dataset.value); renderFormStars();
-});
-$('#formStars').addEventListener('mouseover', (e) => {
-  const star = e.target.closest('.star'); if (!star) return;
-  $$('#formStars .star').forEach(s => s.classList.toggle('active', Number(s.dataset.value) <= Number(star.dataset.value)));
-});
-$('#formStars').addEventListener('mouseleave', renderFormStars);
 
 // Status
 function renderFormStatus() {
@@ -694,7 +742,7 @@ $('#movieForm').addEventListener('submit', async (e) => {
     title,
     year: $('#formYear').value ? Number($('#formYear').value) : null,
     director: $('#formDirector').value.trim(),
-    rating: state.formRating,
+    rating: 0,
     status: state.formStatus,
     notes: $('#formNotes').value.trim(),
     tags: state.formTags,
