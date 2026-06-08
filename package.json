@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js",
+    "test:api": "node --test test/api.test.js",
+    "test:db": "node --test test/db.test.js"
   },
   "dependencies": {
     "express": "^4.21.0",

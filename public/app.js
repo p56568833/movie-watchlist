@@ -30,7 +30,8 @@ async function api(path, options = {}) {
   let res;
   try {
     res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
-  } catch {
+  } catch (err) {
+    console.error('API fetch error:', err);
     throw new Error('网络连接失败 — 请检查 WiFi 或刷新重试');
   }
   if (!res.ok) {
@@ -75,9 +76,9 @@ function renderSidebar() {
   nav.innerHTML = '';
   state.lists.forEach(list => {
     const item = document.createElement('div');
-    item.className = 'sidebar-item' + (list.id === state.currentListId ? ' active' : '');
+    item.className = 'list-nav-item' + (list.id === state.currentListId ? ' active' : '');
     item.dataset.listId = list.id;
-    item.innerHTML = `<span class="sidebar-item-name">${esc(list.name)}</span><span class="sidebar-item-count"></span>`;
+    item.innerHTML = `<span class="list-name">${esc(list.name)}</span>`;
     item.addEventListener('click', () => switchList(list.id));
     nav.appendChild(item);
   });
@@ -174,7 +175,13 @@ async function loadMovies() {
     if (state.filters.sort) params.set('sort', state.filters.sort);
 
     state.movies = await api(`/api/lists/${state.currentListId}/movies?${params}`);
-    state.allTags = await api(`/api/lists/${state.currentListId}/tags`);
+
+    // Derive tags from loaded movies (avoid extra API call)
+    const tagSet = new Set();
+    state.movies.forEach(m => {
+      if (Array.isArray(m.tags)) m.tags.forEach(t => tagSet.add(t));
+    });
+    state.allTags = [...tagSet].sort();
 
     // Build set of existing TMDB IDs for dedup
     state.existingTmdbIds = new Set();
@@ -220,7 +227,7 @@ function createMovieCard(movie, index) {
   delX.className = 'card-delete-btn';
   delX.innerHTML = '✕';
   delX.title = '删除';
-  delX.addEventListener('click', (e) => { e.stopPropagation(); deleteMovie(movie.id); });
+  delX.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`确定删除《${movie.title}》？`)) deleteMovie(movie.id); });
   card.appendChild(delX);
 
   const poster = document.createElement('div');
@@ -432,7 +439,6 @@ $('#detailDeleteBtn').addEventListener('click', () => {
 });
 
 async function deleteMovie(id) {
-  if (!confirm('确定删除？')) return;
   try {
     await api(`/api/movies/${id}`, { method: 'DELETE' });
     showToast('已删除'); await loadMovies();
@@ -447,6 +453,7 @@ let tmdbTimer;
 const tmdbSearchInput = $('#tmdbSearch');
 const tmdbDropdown = $('#tmdbDropdown');
 const tmdbHint = $('#tmdbHint');
+const tmdbSearchCache = new Map();
 
 // Show hint on load if no key
 if (!tmdbKey) tmdbHint.classList.remove('hidden');
@@ -490,7 +497,16 @@ async function searchTMDB(query) {
       return;
     }
 
-    tmdbDropdown.innerHTML = data.results.slice(0, 8).map(m => {
+    const results = data.results.slice(0, 8);
+    results.forEach(m => {
+      tmdbSearchCache.set(m.id, {
+        title: m.title,
+        year: m.release_date ? m.release_date.slice(0, 4) : '',
+        poster_path: m.poster_path || '',
+      });
+    });
+
+    tmdbDropdown.innerHTML = results.map(m => {
       const alreadyAdded = state.existingTmdbIds.has(m.id);
       const posterHtml = m.poster_path
         ? `<img class="tmdb-dropdown-poster" src="${TMDB_IMAGE_BASE}${m.poster_path}" alt="" loading="lazy">`
@@ -500,7 +516,7 @@ async function searchTMDB(query) {
       const btnText = alreadyAdded ? '✓ 已收藏' : '＋添加';
 
       return `
-        <div class="tmdb-dropdown-item" data-tmdb-id="${m.id}" data-title="${esc(m.title)}" data-year="${year}" data-poster="${m.poster_path || ''}" data-overview="${esc(m.overview || '')}">
+        <div class="tmdb-dropdown-item" data-tmdb-id="${m.id}">
           ${posterHtml}
           <div class="tmdb-dropdown-info">
             <span class="tmdb-dropdown-title">${esc(m.title)}${year ? `<span class="tmdb-dropdown-year">${year}</span>` : ''}</span>
@@ -526,10 +542,10 @@ tmdbDropdown.addEventListener('click', async (e) => {
   const item = btn.closest('.tmdb-dropdown-item');
   if (!item) return;
 
-  const title = item.dataset.title;
-  const year = item.dataset.year || null;
-  const posterPath = item.dataset.poster || '';
   const tmdbId = Number(item.dataset.tmdbId);
+  const cached = tmdbSearchCache.get(tmdbId);
+  if (!cached) return;
+  const { title, year, poster_path: posterPath } = cached;
 
   btn.textContent = '添加中…';
   btn.disabled = true;

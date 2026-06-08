@@ -98,10 +98,27 @@ function migrate(d) {
   }
 }
 
+let _saveTimer = null;
 function save() {
+  if (!db) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    const data = db.export();
+    fs.writeFileSync(DB_PATH, Buffer.from(data));
+  }, 300);
+}
+
+function flushDb() {
+  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
   if (!db) return;
   const data = db.export();
   fs.writeFileSync(DB_PATH, Buffer.from(data));
+}
+
+function resetDb() {
+  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+  if (db) { db.close(); db = null; }
 }
 
 // ── Lists CRUD ────────────────────────────────────────
@@ -160,13 +177,20 @@ async function deleteList(id) {
   if (count.length && count[0].values[0][0] <= 1) {
     throw new Error('不能删除最后一个片单');
   }
-  // Cascade: delete all movies in this list first
-  let stmt = d.prepare('DELETE FROM movies WHERE list_id = ?');
-  stmt.bind([id]); stmt.step(); stmt.free();
-  stmt = d.prepare('DELETE FROM lists WHERE id = ?');
-  stmt.bind([id]); stmt.step(); stmt.free();
-  save();
-  return { deleted: true };
+  // Cascade: delete all movies in this list (within transaction)
+  d.run('BEGIN');
+  try {
+    let stmt = d.prepare('DELETE FROM movies WHERE list_id = ?');
+    stmt.bind([id]); stmt.step(); stmt.free();
+    stmt = d.prepare('DELETE FROM lists WHERE id = ?');
+    stmt.bind([id]); stmt.step(); stmt.free();
+    d.run('COMMIT');
+    save();
+    return { deleted: true };
+  } catch (e) {
+    d.run('ROLLBACK');
+    throw e;
+  }
 }
 
 // ── Movies CRUD (list-scoped) ─────────────────────────
@@ -297,4 +321,6 @@ module.exports = {
   getAllLists, getListById, createList, updateList, deleteList,
   getMoviesByList, getMovieById, createMovie, updateMovie, deleteMovie,
   getTagsByList,
+  flushDb,
+  resetDb,
 };
