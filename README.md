@@ -21,15 +21,21 @@
 ```
 movie-watchlist/
 ├── package.json          # 依赖：express, sql.js
-├── server.js             # Express 服务器 + RESTful API
+├── server.js             # 启动入口（端口、局域网 IP、优雅退出）
+├── app.js                # Express 应用（路由、中间件）
 ├── db.js                 # SQLite 数据库层（lists + movies CRUD）
 ├── movies.db             # SQLite 数据库文件（自动创建）
 ├── README.md             # 本文件
 ├── .gitignore
-└── public/               # 前端静态资源
-    ├── index.html        # 页面结构（侧边栏 + 主内容 + 弹窗）
-    ├── style.css         # CC 铁皮盘美学样式
-    └── app.js            # 前端交互逻辑（TMDB、多片单、表单）
+├── Dockerfile            # 多阶段 Docker 构建
+├── railway.toml          # Railway 部署配置
+├── public/               # 前端静态资源
+│   ├── index.html        # 页面结构（侧边栏 + 主内容 + 弹窗）
+│   ├── style.css         # CC 铁皮盘美学样式
+│   └── app.js            # 前端交互逻辑（TMDB、多片单、表单）
+└── test/                 # 测试
+    ├── api.test.js       # API 集成测试（27 项）
+    └── db.test.js        # 数据库单元测试（22 项）
 ```
 
 ## 快速启动
@@ -37,8 +43,8 @@ movie-watchlist/
 ```bash
 cd movie-watchlist
 npm install
-npm start
-# → 打开 http://localhost:3000
+npm start        # 启动服务 → http://localhost:3000
+npm test         # 运行全部测试（49 项）
 ```
 
 ## 使用流程
@@ -132,6 +138,16 @@ npm start
 1. 首次启动时自动创建 `lists` 表
 2. 旧 `movies` 表自动追加 `list_id`、`tmdb_id`、`poster_path` 列
 3. 自动创建「我的片单」并将所有旧电影归入其中
+
+## 测试
+
+```bash
+npm test           # 运行全部测试
+npm run test:api   # 仅 API 集成测试
+npm run test:db    # 仅数据库单元测试
+```
+
+使用 Node.js 内置 `node:test` 测试框架（无需额外依赖）。
 
 ## License
 
