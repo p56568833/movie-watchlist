@@ -227,6 +227,7 @@ function createMovieCard(movie, index) {
   delX.className = 'card-delete-btn';
   delX.innerHTML = '✕';
   delX.title = '删除';
+  delX.setAttribute('aria-label', `删除《${movie.title}》`);
   delX.addEventListener('click', (e) => { e.stopPropagation(); showDeletePopover(delX, movie); });
   card.appendChild(delX);
 
@@ -254,6 +255,10 @@ function createMovieCard(movie, index) {
   const dir = document.createElement('p');
   dir.className = 'card-director'; dir.textContent = movie.director || '';
 
+  const status = document.createElement('span');
+  status.className = `card-status ${movie.status || 'want_to_watch'}`;
+  status.textContent = movie.status === 'watched' ? '已看' : '想看';
+
   const tagsDiv = document.createElement('div');
   tagsDiv.className = 'card-tags';
   (Array.isArray(movie.tags) ? movie.tags : []).forEach(tag => {
@@ -265,6 +270,7 @@ function createMovieCard(movie, index) {
 
   body.appendChild(titleRow);
   if (movie.director) body.appendChild(dir);
+  body.appendChild(status);
   if (movie.tags?.length) body.appendChild(tagsDiv);
 
   // Notes preview
@@ -282,8 +288,13 @@ function createMovieCard(movie, index) {
 function placeholderEl(movie) {
   const d = document.createElement('div');
   d.className = 'card-poster-placeholder';
-  const letter = (movie?.title || '?').charAt(0);
-  d.innerHTML = `<span>${esc(letter)}</span>`;
+  const title = movie?.title || 'Untitled';
+  const year = movie?.year || '0000';
+  d.innerHTML = `
+    <span class="placeholder-catalog">CC / ${esc(String(year))}</span>
+    <span class="placeholder-title">${esc(title)}</span>
+    <span class="placeholder-mark">C</span>
+  `;
   return d;
 }
 
@@ -300,6 +311,7 @@ async function openDetail(movie) {
 
   // Reset
   $('#detailPoster').src = '';
+  $('#detailPoster').classList.add('hidden');
   $('#detailNoPoster').classList.add('hidden');
   $('#detailTitle').textContent = movie.title;
   $('#detailYear').textContent = movie.year || '';
@@ -317,6 +329,7 @@ async function openDetail(movie) {
   const url = posterUrl(movie);
   if (url) {
     $('#detailPoster').src = url;
+    $('#detailPoster').classList.remove('hidden');
   } else {
     $('#detailNoPoster').classList.remove('hidden');
   }
@@ -838,7 +851,7 @@ function showToast(msg, isErr = false) {
   const el = $('#toast');
   el.textContent = msg;
   el.classList.remove('hidden');
-  el.style.borderColor = isErr ? 'var(--danger-dim)' : 'var(--gold-dim)';
+  el.style.borderColor = isErr ? 'var(--danger-dim)' : 'var(--red-dim)';
   toastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
 }
 
