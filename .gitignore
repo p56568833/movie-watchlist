@@ -4,3 +4,4 @@ node_modules/
 *.db-wal
 *.db-shm
 .DS_Store
+_tmp_files.txt
