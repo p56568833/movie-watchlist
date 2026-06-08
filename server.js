@@ -86,8 +86,8 @@ app.post('/api/lists/:listId/movies', async (req, res) => {
     movie.tags = safeParseTags(movie.tags);
     res.status(201).json(movie);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create movie' });
+    console.error('Create movie error:', err.message, err.stack);
+    res.status(500).json({ error: 'Failed to create movie: ' + err.message });
   }
 });
 
