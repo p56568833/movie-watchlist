@@ -473,6 +473,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 24px;
   flex: 1;
+  align-items: start;
 }
 
 /* ── Movie Card ────────────────────────────────────── */
@@ -486,6 +487,8 @@ body {
   box-shadow: var(--shadow-card);
   animation: card-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   position: relative;
+  align-self: start;
+  height: auto;
   height: auto !important;
   min-height: 0 !important;
   background-image:
@@ -569,7 +572,7 @@ body {
 .card-body { padding: 14px 16px 18px; }
 
 .movie-card .card-body {
-  position: static;
+  position: relative;
   left: auto;
   right: auto;
   bottom: auto;
