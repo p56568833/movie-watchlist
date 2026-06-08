@@ -8,6 +8,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check (for Railway)
+app.get('/health', (req, res) => res.json({ ok: true }));
+
 // ── Lists ─────────────────────────────────────────────
 
 app.get('/api/lists', async (req, res) => {
@@ -157,9 +160,15 @@ function getLocalIP() {
   return 'localhost';
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIP();
   console.log(`🎬 Movie Watchlist running at:`);
   console.log(`   本机访问: http://localhost:${PORT}`);
   console.log(`   手机访问: http://${ip}:${PORT}`);
+});
+
+// Graceful shutdown (for Railway)
+process.on('SIGTERM', () => {
+  console.log('Shutting down gracefully…');
+  server.close(() => process.exit(0));
 });

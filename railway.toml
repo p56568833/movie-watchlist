@@ -1,0 +1,13 @@
+[build]
+  builder = "docker"
+
+[deploy]
+  healthcheckPath = "/health"
+  restartPolicyMaxRetries = 3
+
+[service]
+  port = 3000
+
+[mount]
+  source = "data"
+  target = "/data"
