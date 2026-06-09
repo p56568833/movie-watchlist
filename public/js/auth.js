@@ -54,8 +54,12 @@ export async function checkAuth() {
   try {
     await api('/api/auth/me');
     return true;
-  } catch {
-    logout();
+  } catch (err) {
+    // Only clear on real auth failure, not network hiccups
+    if (err.message === '请先登录' || err.message.includes('过期')) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
     return false;
   }
 }
