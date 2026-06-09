@@ -18,6 +18,14 @@ export function createMovieCard(movie, index, handlers) {
   });
   card.appendChild(deleteButton);
 
+  // Rating badge (top-left)
+  if (movie.rating > 0) {
+    const rating = document.createElement('div');
+    rating.className = 'card-rating';
+    rating.innerHTML = `<span class="card-rating-star">★</span>${movie.rating}`;
+    card.appendChild(rating);
+  }
+
   const poster = document.createElement('div');
   poster.className = 'card-poster';
 

@@ -92,10 +92,13 @@
     min-height: 154px;
   }
 
-  .movie-card::after {
-    top: 10px;
-    left: 12px;
-    font-size: 0.52rem;
+  .card-rating {
+    top: 8px;
+    left: 8px;
+    font-size: 0.64rem;
+  }
+  .card-rating .card-rating-star {
+    font-size: 0.55rem;
   }
 
   .card-poster {
