@@ -7,7 +7,13 @@ const errMsg = (err, fallback) =>
   process.env.NODE_ENV === 'production' ? fallback : (err.message || fallback);
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, p) => {
+    if (p.endsWith('.js') || p.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  },
+}));
 
 // Optional token auth — only active when AUTH_TOKEN env is set
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
