@@ -22,8 +22,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
 const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register', '/api/tmdb'];
 
 function authMiddleware(req, res, next) {
-  // Skip public paths (mounted under /api, so req.path has /api stripped)
-  if (req.path.startsWith('/auth/') || req.path.startsWith('/tmdb/') || req.originalUrl === '/health') {
+  // Only login + register are public; /me needs auth to identify the user
+  if (req.path === '/auth/login' || req.path === '/auth/register' || req.path.startsWith('/tmdb/') || req.originalUrl === '/health') {
     return next();
   }
 
