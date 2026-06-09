@@ -1,0 +1,9 @@
+/* ── Movie Grid ────────────────────────────────────── */
+.movie-grid {
+  padding: 0 32px 80px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  flex: 1;
+  align-items: start;
+}

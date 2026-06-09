@@ -1,0 +1,34 @@
+/* ── Variables ─────────────────────────────────────── */
+:root {
+  --bg-deep:    #070707;
+  --bg-charcoal:#111111;
+  --bg-card:    #1b1b1b;
+  --bg-card-hover: #222222;
+  --metal-dark: #181818;
+  --metal-mid:  #2c2c2c;
+  --metal-edge: #3a3937;
+  --red:        #c83737;
+  --red-dim:    #7f2025;
+  --red-dark:   #431316;
+  --red-bright: #e85a52;
+  --paper:      #d8d1c7;
+  --paper-dim:  #9f9890;
+  --gold:       var(--red);
+  --gold-dim:   var(--red-dim);
+  --gold-bright:var(--red-bright);
+  --text:       #ebe7df;
+  --text-dim:   #aaa39a;
+  --text-muted: #6f6a64;
+  --danger:     #d64a4a;
+  --danger-dim: #7b2428;
+  --font-serif: 'Playfair Display', 'Noto Serif SC', 'Georgia', serif;
+  --font-sans:  -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono:  'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --sidebar-w:  240px;
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.58), 0 0 0 1px var(--metal-edge);
+  --shadow-card-hover: 0 18px 42px rgba(0,0,0,0.7), 0 0 0 1px rgba(200,55,55,0.55), 0 0 24px rgba(200,55,55,0.08);
+  --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}

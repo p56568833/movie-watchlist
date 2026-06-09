@@ -1,0 +1,64 @@
+/* ── Modal Form ────────────────────────────────────── */
+.modal-form {
+  padding: 16px 24px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-size: 0.8rem; font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+.required { color: var(--danger); }
+
+.form-input, .form-textarea {
+  padding: 10px 14px;
+  background: var(--bg-deep);
+  border: 1px solid var(--metal-edge);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 3px rgba(200,55,55,0.08);
+}
+
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+
+.form-textarea { resize: vertical; min-height: 70px; }
+
+.form-row { display: flex; gap: 12px; }
+.form-group-half { flex: 1; }
+
+
+/* ── Settings ──────────────────────────────────────── */
+.settings-body { padding: 16px 24px 24px; }
+
+.settings-desc {
+  font-size: 0.85rem; color: var(--text-dim);
+  line-height: 1.6; margin-bottom: 16px;
+}
+
+.settings-desc a {
+  color: var(--gold);
+  transition: color var(--transition);
+}
+
+.settings-desc a:hover { color: var(--gold-bright); }
+
+.settings-status {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  min-height: 20px;
+}
+
+.settings-status.success { color: var(--gold); }
+.settings-status.error { color: var(--danger); }

@@ -1,0 +1,78 @@
+/* ── Delete Confirm Popover ────────────────────────── */
+.delete-popover {
+  position: fixed;
+  z-index: 5000;
+  background: linear-gradient(160deg, #1f1f1f 0%, #181818 100%);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  min-width: 220px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(200,55,55,0.10), 0 0 24px rgba(200,55,55,0.06);
+  backdrop-filter: blur(12px);
+  animation: popover-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.delete-popover.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.delete-popover-text {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.4;
+  font-family: var(--font-sans);
+}
+
+.delete-popover-text strong {
+  color: var(--gold);
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+.delete-popover-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.delete-popover-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--metal-edge);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.delete-popover-btn:hover {
+  border-color: var(--metal-mid);
+  color: var(--text);
+}
+
+.delete-popover-btn.confirm {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.delete-popover-btn.confirm:hover {
+  background: #c55555;
+  border-color: #c55555;
+  box-shadow: 0 0 12px rgba(176,69,69,0.3);
+}

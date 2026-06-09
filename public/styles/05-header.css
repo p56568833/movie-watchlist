@@ -1,0 +1,70 @@
+/* ── Header ────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid rgba(200,55,55,0.18);
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+}
+
+.header-info {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.header-list-name {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.03em;
+}
+
+.header-list-name::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 0.78em;
+  margin-right: 12px;
+  background: var(--red);
+  box-shadow: 0 0 18px rgba(200,55,55,0.28);
+  transform: translateY(1px);
+}
+
+.header-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-icon {
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--metal-edge);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-icon:hover {
+  border-color: var(--metal-mid);
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+}
+
+.btn-icon.btn-danger:hover {
+  border-color: var(--danger-dim);
+  color: var(--danger);
+  background: rgba(176,69,69,0.08);
+}

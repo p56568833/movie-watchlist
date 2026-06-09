@@ -1,0 +1,26 @@
+/* ── Tags ──────────────────────────────────────────── */
+.tags-input-container { position: relative; }
+.tags-input { width: 100%; }
+
+.tags-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.tag-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
+  background: rgba(200,55,55,0.08);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  font-size: 0.78rem;
+  color: var(--gold);
+}
+
+.tag-pill-remove {
+  background: none; border: none;
+  color: var(--gold-dim);
+  cursor: pointer;
+  font-size: 0.85rem; line-height: 1;
+  padding: 0 2px;
+  transition: color var(--transition);
+}
+
+.tag-pill-remove:hover { color: var(--danger); }
