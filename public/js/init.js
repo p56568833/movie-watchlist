@@ -11,7 +11,7 @@ import { initSettings } from './settings.js';
 import { initTMDBSearch } from './tmdbSearch.js';
 import { initPersonDetail, openPersonDetail } from './personDetail.js';
 import { $ } from './dom.js';
-import { register } from './navigation.js';
+import { initNavigation } from './navigation.js';
 
 let isLoginMode = true;
 
@@ -94,7 +94,7 @@ async function startApp() {
   }
 
   configureMovies({ onOpenMovie: openDetail });
-  register({ openDetail, openPerson: openPersonDetail });
+  initNavigation({ openDetail, openPerson: openPersonDetail });
 
   initDeletePopover();
   initDetailPanel();

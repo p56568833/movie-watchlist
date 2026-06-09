@@ -7,7 +7,7 @@ let _openDetail = null;
 let _openPerson = null;
 
 /** init.js 调用一次，注册两个导航入口 */
-export function register({ openDetail, openPerson }) {
+export function initNavigation({ openDetail, openPerson }) {
   _openDetail = openDetail;
   _openPerson = openPerson;
 }
