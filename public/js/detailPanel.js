@@ -33,11 +33,11 @@ export async function openDetail(movie) {
       renderTMDBDetails(tmdb);
     } catch {
       $('#detailCast').innerHTML = '';
-      $('#detailOverview').textContent = movie.notes || '暂无简介';
+      $('#detailOverview').textContent = '暂无简介';
     }
   } else {
     $('#detailCast').innerHTML = '';
-    $('#detailOverview').textContent = movie.notes || '暂无简介。可在编辑中添加备注。';
+    $('#detailOverview').textContent = '暂无简介';
   }
 }
 
@@ -86,13 +86,12 @@ export function initDetailPanel() {
         method: 'POST',
         body: JSON.stringify({
           title: movie.title,
-          year: movie.year || null,
+          year: movie.year ? Number(movie.year) : null,
           poster_path: movie.poster_path || '',
           tmdb_id: movie.tmdb_id || null,
           rating: movie.rating || 0,
           status: 'watched',
           tags: movie.tags || [],
-          notes: movie.notes || '',
         }),
       });
       updateState(draft => { draft.existingTmdbIds.add(movie.tmdb_id); });
@@ -140,7 +139,6 @@ function resetDetail(movie) {
   $('#detailCast').innerHTML = '<span class="detail-loading">加载中...</span>';
   $('#detailDirector').innerHTML = '';
   $('#detailTagsRow').classList.add('hidden');
-  $('#detailNotesRow').classList.add('hidden');
   updateCollectButton(!!(movie.id || (movie.tmdb_id && getState().existingTmdbIds.has(movie.tmdb_id))));
 }
 
@@ -162,10 +160,6 @@ function renderLocalMovieDetails(movie) {
   if (tags.length > 0) {
     $('#detailTags').innerHTML = tags.map((tag) => `<span class="detail-tag">${esc(tag)}</span>`).join('');
     $('#detailTagsRow').classList.remove('hidden');
-  }
-  if (movie.notes) {
-    $('#detailNotes').textContent = movie.notes;
-    $('#detailNotesRow').classList.remove('hidden');
   }
   if (movie.director) {
     $('#detailDirector').innerHTML = `<span class="credits-director" style="pointer-events:none">
