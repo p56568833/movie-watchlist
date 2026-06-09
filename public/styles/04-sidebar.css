@@ -84,6 +84,46 @@
   white-space: nowrap;
 }
 
+.list-item-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.list-nav-item:hover .list-item-actions,
+.list-nav-item.active .list-item-actions {
+  opacity: 1;
+}
+
+.list-action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 0;
+}
+
+.list-action-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--metal-edge);
+  color: var(--text);
+}
+
+.list-action-btn[data-action="delete"]:hover {
+  color: var(--danger);
+  border-color: var(--danger-dim);
+  background: rgba(200,55,55,0.1);
+}
+
 .list-nav-item .list-count {
   font-size: 0.7rem;
   color: var(--text-muted);

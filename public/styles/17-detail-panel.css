@@ -14,14 +14,38 @@
   animation: modal-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Back button */
+.detail-back-btn {
+  position: absolute;
+  top: 16px; left: 16px;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all var(--transition);
+  backdrop-filter: blur(6px);
+}
+
+.detail-back-btn:hover {
+  background: rgba(0,0,0,0.75);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.detail-back-btn.hidden { display: none; }
+
 .detail-close {
   position: absolute;
   top: 16px; right: 16px;
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid var(--metal-edge);
-  color: var(--text-dim);
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   z-index: 10;
@@ -30,9 +54,9 @@
 }
 
 .detail-close:hover {
-  border-color: var(--metal-mid);
-  color: var(--text);
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
 }
 
 .detail-layout {
@@ -41,53 +65,53 @@
   max-height: calc(90vh - 2px);
 }
 
-.detail-poster-col {
+.detail-banner {
+  position: relative;
   flex-shrink: 0;
-  height: clamp(200px, 30vh, 280px);
-  max-height: 280px;
-  min-height: 200px;
+  height: clamp(220px, 32vh, 320px);
+  min-height: 180px;
   background:
     linear-gradient(145deg, rgba(200,55,55,0.08), transparent 32%),
     var(--bg-deep);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: none;
-  border-bottom: 1px solid var(--metal-edge);
-  padding: 0;
-}
-
-.detail-poster-wrap {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 18px 46px rgba(0,0,0,0.54);
   overflow: hidden;
+  border-bottom: 1px solid var(--metal-edge);
 }
 
-.detail-poster-img {
+.detail-backdrop-img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
+  object-position: 50% 25%;
   background: #090909;
 }
 
-.detail-poster-img.hidden { display: none; }
+.detail-backdrop-img.hidden { display: none; }
 
-.detail-poster-placeholder {
-  width: 100%;
-  height: 100%;
+.detail-banner-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.5) 0%,
+    rgba(0,0,0,0.1) 35%,
+    transparent 50%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.detail-banner-placeholder {
+  position: absolute;
+  inset: 0;
   display: flex; align-items: center; justify-content: center;
   background:
     linear-gradient(90deg, rgba(200,55,55,0.9) 0 12px, transparent 12px),
     linear-gradient(145deg, #121212 0%, #262626 54%, #101010 100%);
+  z-index: 0;
 }
 
-.detail-poster-placeholder.hidden { display: none; }
+.detail-banner-placeholder.hidden { display: none; }
 
 .detail-no-poster-letter {
   width: 72px;
@@ -199,6 +223,10 @@
 
 /* Crew (Director) */
 .detail-crew {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   font-size: 0.88rem;
   color: var(--text-dim);
   margin-bottom: 16px;
@@ -206,6 +234,55 @@
 }
 
 .detail-crew strong { color: var(--text); font-weight: 600; }
+
+/* Director chips (clickable) */
+.director-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px 6px 6px;
+  margin: 4px 8px 4px 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--metal-edge);
+  border-radius: 24px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  vertical-align: middle;
+}
+
+.director-chip:hover {
+  background: rgba(200,55,55,0.1);
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+.director-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--metal-dark);
+  flex-shrink: 0;
+}
+
+.director-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--metal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+}
+
+.director-chip-name {
+  font-weight: 500;
+}
 
 /* Sections */
 .detail-section {
@@ -225,13 +302,53 @@
   display: flex; flex-wrap: wrap; gap: 8px;
 }
 
-.detail-cast-chip {
-  font-size: 0.78rem;
-  color: var(--text-dim);
-  padding: 4px 10px;
+/* Cast chips (clickable) */
+.cast-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  margin: 2px 4px 2px 0;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--metal-edge);
-  border-radius: 14px;
+  border-radius: 16px;
+  color: var(--text-dim);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  vertical-align: middle;
+}
+
+.cast-chip:hover {
+  background: rgba(200,55,55,0.1);
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+.cast-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--metal-dark);
+  flex-shrink: 0;
+}
+
+.cast-avatar-placeholder {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--metal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+}
+
+.cast-chip-name {
+  font-weight: 500;
 }
 
 .detail-overview {
@@ -243,20 +360,51 @@
 /* Detail actions */
 .detail-actions {
   display: flex; gap: 10px;
+  justify-content: flex-end;
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--metal-edge);
 }
 
-.btn-danger-outline {
+.detail-delete-btn {
   background: transparent;
   border-color: var(--danger-dim);
   color: var(--danger);
 }
 
-.btn-danger-outline:hover {
-  background: rgba(176,69,69,0.1);
+.detail-delete-btn:hover {
+  background: rgba(200,55,55,0.1);
   border-color: var(--danger);
+  color: #e85a5a;
+}
+
+/* Delete confirmation dialog (centered overlay) */
+.delete-confirm-modal {
+  text-align: center;
+}
+
+.delete-confirm-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  padding: 28px 24px 16px;
+  line-height: 1.5;
+}
+
+.delete-confirm-text strong {
+  color: var(--gold);
+  font-family: var(--font-serif);
+}
+
+.detail-delete-confirm-btn {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  font-weight: 600;
+}
+
+.detail-delete-confirm-btn:hover {
+  background: #c55555;
+  border-color: #c55555;
 }
 
 /* Detail loading */

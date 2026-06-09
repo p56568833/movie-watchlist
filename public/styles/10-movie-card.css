@@ -158,32 +158,6 @@
   -webkit-box-orient: vertical;
 }
 
-.card-actions {
-  display: flex; gap: 6px; margin-top: 10px;
-  opacity: 0; transition: opacity var(--transition);
-}
-
-.movie-card:hover .card-actions { opacity: 1; }
-
-.card-action {
-  padding: 4px 12px;
-  border: 1px solid var(--metal-edge);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all var(--transition);
-  font-family: var(--font-sans);
-}
-
-.card-action:hover { border-color: var(--metal-mid); color: var(--text); }
-
-.card-action.delete:hover {
-  border-color: var(--danger-dim); color: var(--danger);
-  background: rgba(176,69,69,0.08);
-}
-
 /* ── Card Delete Button ────────────────────────────── */
 .movie-card .card-delete-btn {
   position: absolute;

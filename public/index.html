@@ -57,19 +57,7 @@
           <h1 class="header-list-name" id="headerListName">我的片单</h1>
           <span class="header-count" id="headerCount">0 部电影</span>
         </div>
-        <div class="header-actions">
-          <button class="btn btn-icon" id="editListBtn" title="编辑片单" aria-label="编辑片单">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
-          <button class="btn btn-icon btn-danger" id="deleteListBtn" title="删除片单" aria-label="删除片单">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
-        </div>
+
       </header>
 
       <!-- TMDB Search Bar -->
@@ -79,29 +67,18 @@
             <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
           </svg>
           <input type="text" id="tmdbSearch" class="tmdb-search-input" placeholder="搜索 TMDB 添加电影…" autocomplete="off">
-          <button id="addBtnManual" class="btn btn-add" title="手动添加电影" aria-label="手动添加电影">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>手动添加</span>
-          </button>
+
         </div>
         <div class="tmdb-dropdown" id="tmdbDropdown"></div>
         <p class="tmdb-hint hidden" id="tmdbHint">
           ⚠️ 尚未配置 TMDB API Key，无法搜索电影。<br>
-          请点击右侧「手动添加」按钮，或
-          <button type="button" class="link-btn" id="tmdbGoSettings">前往设置</button>
-          配置 Key。
+          请<button type="button" class="link-btn" id="tmdbGoSettings">前往设置</button>配置 Key。
         </p>
       </section>
 
       <!-- Toolbar (in-list filters) -->
       <section class="toolbar">
         <div class="toolbar-row">
-          <div class="filter-group">
-            <button class="filter-chip active" data-status="all">全部</button>
-            <button class="filter-chip" data-status="watched">已看</button>
-          </div>
           <div class="list-search-box">
             <svg class="search-icon search-icon-sm" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -195,6 +172,7 @@
   <!-- ════ Movie Detail Modal ════ -->
   <div class="modal-overlay hidden" id="detailOverlay">
     <div class="detail-panel">
+      <button class="detail-back-btn hidden" id="detailBack" aria-label="返回">← 返回</button>
       <button class="detail-close" id="detailClose" aria-label="关闭详情">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -202,17 +180,16 @@
       </button>
 
       <div class="detail-layout">
-        <!-- Left: Poster -->
-        <div class="detail-poster-col">
-          <div class="detail-poster-wrap">
-            <img id="detailPoster" class="detail-poster-img" src="" alt="">
-            <div class="detail-poster-placeholder hidden" id="detailNoPoster">
-              <span class="detail-no-poster-letter">C</span>
-            </div>
+        <!-- Banner (backdrop) -->
+        <div class="detail-banner" id="detailBanner">
+          <img id="detailBackdrop" class="detail-backdrop-img hidden" src="" alt="">
+          <div class="detail-banner-gradient"></div>
+          <div class="detail-banner-placeholder hidden" id="detailBannerPlaceholder">
+            <span class="detail-no-poster-letter">C</span>
           </div>
         </div>
 
-        <!-- Right: Info -->
+        <!-- Info -->
         <div class="detail-info-col">
           <h1 class="detail-title" id="detailTitle"></h1>
           <div class="detail-meta-row">
@@ -255,12 +232,11 @@
 
           <!-- Actions -->
           <div class="detail-actions">
-            <button class="btn" id="detailEditBtn">
+            <button class="btn detail-delete-btn" id="detailDeleteBtn">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
               </svg>
-              编辑
+              删除
             </button>
           </div>
         </div>
@@ -329,13 +305,45 @@
   <!-- ════ Toast ════ -->
   <div class="toast hidden" id="toast"></div>
 
-  <!-- Floating delete button (bottom-right, visible when detail open) -->
-  <button class="floating-delete-btn hidden" id="floatingDeleteBtn" title="删除" aria-label="删除这部电影">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-    </svg>
-  </button>
+  <!-- ════ Delete Confirm Dialog ════ -->
+  <div class="modal-overlay hidden" id="deleteConfirmOverlay">
+    <div class="modal modal-sm delete-confirm-modal">
+      <p class="delete-confirm-text" id="deleteConfirmText"></p>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" id="deleteConfirmCancel">取消</button>
+        <button class="btn detail-delete-confirm-btn" id="deleteConfirmBtn">确认删除</button>
+      </div>
+    </div>
+  </div>
 
-  <script src="app.js"></script>
+  <!-- ════ Person Detail Modal ════ -->
+  <div class="modal-overlay hidden" id="personDetailOverlay">
+    <div class="person-detail-panel">
+      <button class="detail-back-btn hidden" id="personDetailBack" aria-label="返回">← 返回</button>
+      <button class="detail-close" id="personDetailClose" aria-label="关闭影人详情">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div class="person-detail-content">
+        <div class="person-header">
+          <img id="personPhoto" class="person-photo" src="" alt="">
+          <div class="person-info">
+            <h1 id="personName" class="person-name"></h1>
+            <div id="personRoles" class="person-roles hidden"></div>
+            <p id="personMeta" class="person-meta"></p>
+          </div>
+        </div>
+        <div class="person-bio-wrap">
+          <p id="personBio" class="person-bio collapsed"></p>
+          <div class="person-bio-fade hidden" id="personBioFade"></div>
+          <button class="person-bio-toggle hidden" id="personBioToggle">展开 ↓</button>
+        </div>
+        <div id="personFilmography" class="person-filmography"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
