@@ -88,7 +88,6 @@ function verifyPassword(password, stored) {
 // ── Reset helpers (for tests) ─────────────────────────
 
 function getDb() { return client; }
-function flushDb() { /* no-op for Turso */ }
 
 function resetDb() {
   initialized = false;
@@ -324,9 +323,9 @@ async function getTagsByList(listId) {
 
 module.exports = {
   getDb,
-  createUser, getUserByUsername, getUserById, verifyLogin,
+  createUser, getUserByUsername, verifyLogin,
   getAllLists, getListById, createList, updateList, deleteList,
   getMoviesByList, getMovieById, createMovie, updateMovie, deleteMovie,
   getTagsByList,
-  flushDb, resetDb,
+  resetDb,
 };

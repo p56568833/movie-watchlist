@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "api/index.js",
+    "public/js/init.js",
+    "public/app.js",
+    "scripts/migrate-to-turso.js"
+  ],
+  "project": [
+    "**/*.js"
+  ],
+  "ignoreDependencies": []
+}

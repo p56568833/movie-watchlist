@@ -3,7 +3,7 @@ import { api } from './api.js';
 const TOKEN_KEY = 'mw_token';
 const USER_KEY = 'mw_user';
 
-export function getToken() {
+function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 

@@ -28,7 +28,7 @@ export function openPersonDetail(person) {
   loadPersonDetail(person.id);
 }
 
-export function closePersonDetail() {
+function closePersonDetail() {
   $('#personDetailOverlay').classList.add('hidden');
   clearStack();
   currentPersonData = null;

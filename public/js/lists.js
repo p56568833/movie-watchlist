@@ -119,7 +119,7 @@ function deleteList(listId) {
   };
 }
 
-export async function switchList(listId) {
+async function switchList(listId) {
   const state = getState();
   if (listId === state.currentListId) return;
 

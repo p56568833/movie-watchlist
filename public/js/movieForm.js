@@ -22,7 +22,7 @@ export function openAddModal() {
   $('#formTitle').focus();
 }
 
-export function openEditModal(movie) {
+function openEditModal(movie) {
   updateState((draft) => {
     draft.editingId = movie.id;
     draft.formTags = Array.isArray(movie.tags) ? [...movie.tags] : [];

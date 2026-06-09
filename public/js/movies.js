@@ -43,7 +43,7 @@ export async function loadMovies() {
   }
 }
 
-export function renderMovies() {
+function renderMovies() {
   const state = getState();
   const grid = $('#movieGrid');
   const empty = $('#emptyState');
@@ -104,7 +104,7 @@ export function setSort(sort) {
   loadMovies();
 }
 
-export function filterByTag(tag) {
+function filterByTag(tag) {
   updateState((draft) => {
     draft.filters.tag = tag;
   });

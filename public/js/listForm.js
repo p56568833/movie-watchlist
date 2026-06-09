@@ -14,19 +14,6 @@ export function openNewListModal() {
   $('#listFormName').focus();
 }
 
-export function openEditListModal() {
-  const state = getState();
-  const list = state.lists.find((item) => item.id === state.currentListId);
-  if (!list) return;
-
-  $('#listModalTitle').textContent = '编辑片单';
-  $('#listFormId').value = list.id;
-  $('#listFormName').value = list.name;
-  $('#listFormDesc').value = list.description || '';
-  $('#listModalOverlay').classList.remove('hidden');
-  $('#listFormName').focus();
-}
-
 export function closeListModal() {
   $('#listModalOverlay').classList.add('hidden');
 }
