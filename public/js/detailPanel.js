@@ -8,7 +8,7 @@ import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 import { goPerson } from './navigation.js';
 import { showDeleteConfirm, closeDeleteConfirm } from './deleteConfirm.js';
-import { fetchTMDBMovieWithCredits, fetchSimilarMovies, getCachedMovie, fetchTMDBGenres, getTagline } from './tmdbApi.js';
+import { fetchTMDBMovieWithCredits, fetchSimilarMovies, getCachedMovie } from './tmdbApi.js';
 
 let currentDetailMovie = null;
 let _lastTmdbData = null;
@@ -291,25 +291,21 @@ function countryFlag(iso) {
 }
 
 async function loadSimilarMovies(tmdbId) {
-  const state = getState();
   const movies = await fetchSimilarMovies(tmdbId);
   if (!movies.length) return;
 
   const container = $('#detailSimilar');
   const section = $('#detailSimilarSection');
-  const added = state.existingTmdbIds;
 
   container.innerHTML = movies.map(m => {
     const poster = m.poster_path
       ? `<img class="detail-similar-poster" src="https://image.tmdb.org/t/p/w200${m.poster_path}" alt="" loading="lazy">`
       : '<div class="detail-similar-noposter">🎬</div>';
     const year = m.release_date ? m.release_date.slice(0, 4) : '';
-    const already = added.has(m.id);
     return `
       <div class="detail-similar-item" data-tmdb-id="${m.id}">
         ${poster}
         <div class="detail-similar-title">${esc(m.title)}${year ? ` (${year})` : ''}</div>
-        <button class="detail-similar-add${already ? ' added' : ''}" data-action="add-similar" ${already ? 'disabled' : ''}>${already ? '✓ 已添加' : '+ 添加'}</button>
       </div>
     `;
   }).join('');
@@ -317,13 +313,6 @@ async function loadSimilarMovies(tmdbId) {
   section.style.display = '';
 
   container.onclick = async (e) => {
-    const btn = e.target.closest('[data-action="add-similar"]');
-    if (btn && !btn.classList.contains('added')) {
-      e.stopPropagation();
-      await addSimilarMovie(btn);
-      return;
-    }
-
     const item = e.target.closest('.detail-similar-item');
     if (item) {
       const id = Number(item.dataset.tmdbId);
@@ -336,46 +325,6 @@ async function loadSimilarMovies(tmdbId) {
   };
 }
 
-async function addSimilarMovie(btn) {
-  const item = btn.closest('.detail-similar-item');
-  const tmdbId = Number(item.dataset.tmdbId);
-  const cached = getCachedMovie(tmdbId);
-  if (!cached) return;
 
-  btn.textContent = '...'; btn.disabled = true;
-  const state = getState();
-
-  try {
-    const [genres, tagline] = await Promise.all([
-      fetchTMDBGenres(tmdbId).catch(() => []),
-      getTagline(tmdbId).catch(() => ''),
-    ]);
-
-    await api(`/api/lists/${state.currentListId}/movies`, {
-      method: 'POST',
-      body: JSON.stringify({
-        title: cached.title,
-        year: cached.year ? Number(cached.year) : null,
-        poster_path: cached.poster_path || '',
-        tmdb_id: tmdbId,
-        rating: cached.vote_average || 0,
-        status: 'watched',
-        tags: genres,
-        tagline,
-        notes: cached.overview || '',
-      }),
-    });
-
-    updateState(draft => { draft.existingTmdbIds.add(tmdbId); });
-    updateState(d => { d.moviesVersion++; });
-    btn.classList.add('added');
-    btn.textContent = '✓ 已添加';
-    showToast(`已添加《${cached.title}》`);
-  } catch (err) {
-    showToast(err.message || '添加失败', true);
-    btn.textContent = '+ 添加';
-    btn.disabled = false;
-  }
-}
 
 

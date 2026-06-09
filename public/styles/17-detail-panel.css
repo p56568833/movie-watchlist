@@ -607,27 +607,4 @@
   white-space: nowrap;
 }
 
-.detail-similar-add {
-  margin-top: 4px;
-  padding: 3px 0;
-  width: 100%;
-  border: 1px solid var(--gold-dim);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--gold-dim);
-  font-size: 0.68rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
 
-.detail-similar-add:hover {
-  background: var(--gold-dim);
-  color: #fff;
-}
-
-.detail-similar-add.added {
-  border-color: var(--metal-mid);
-  color: var(--text-muted);
-  cursor: default;
-  pointer-events: none;
-}

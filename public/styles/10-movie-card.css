@@ -121,6 +121,7 @@
   color: var(--text);
   letter-spacing: 0.03em;
   line-height: 1.25;
+  min-height: 2.5em;
 }
 
 .card-year {
@@ -133,7 +134,7 @@
 .card-director { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
 
 
-.card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.card-tags { display: flex; flex-wrap: nowrap; gap: 5px; margin-top: 8px; overflow: hidden; }
 
 .card-tag {
   padding: 2px 8px;
@@ -156,7 +157,7 @@
   color: var(--text-muted);
   margin-top: 8px;
   line-height: 1.5;
-  min-height: 2.4em;
+  height: 2.4rem;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -170,7 +171,7 @@
   color: var(--text-dim);
   margin-top: 8px;
   line-height: 1.4;
-  min-height: 2.4em;
+  height: 2.4rem;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
