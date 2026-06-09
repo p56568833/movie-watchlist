@@ -82,3 +82,57 @@ export async function getTagline(tmdbId) {
     return '';
   }
 }
+
+/** 获取相似电影推荐 */
+export async function fetchSimilarMovies(tmdbId) {
+  const state = getState();
+  if (!state.tmdbKey) return [];
+
+  try {
+    const url = `${getTMDBBase()}/movie/${tmdbId}/recommendations?api_key=${state.tmdbKey}&language=zh-CN&page=1`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const movies = (data.results || []).slice(0, 12);
+    movies.forEach(m => cacheMovieResult(m));
+    return movies;
+  } catch {
+    return [];
+  }
+}
+
+/** 获取 TMDB 流行榜 */
+export async function fetchPopularMovies() {
+  const state = getState();
+  if (!state.tmdbKey) return [];
+
+  try {
+    const url = `${getTMDBBase()}/movie/popular?api_key=${state.tmdbKey}&language=zh-CN&page=1`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const movies = (data.results || []).slice(0, 20);
+    movies.forEach(m => cacheMovieResult(m));
+    return movies;
+  } catch {
+    return [];
+  }
+}
+
+/** 获取 TMDB 正在热映 */
+export async function fetchNowPlaying() {
+  const state = getState();
+  if (!state.tmdbKey) return [];
+
+  try {
+    const url = `${getTMDBBase()}/movie/now_playing?api_key=${state.tmdbKey}&language=zh-CN&page=1`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const movies = (data.results || []).slice(0, 20);
+    movies.forEach(m => cacheMovieResult(m));
+    return movies;
+  } catch {
+    return [];
+  }
+}

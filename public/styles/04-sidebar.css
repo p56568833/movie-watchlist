@@ -135,6 +135,29 @@
   color: var(--gold-dim);
 }
 
+/* Sidebar discover */
+.sidebar-discover {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sidebar-discover:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+.sidebar-discover-icon {
+  font-size: 0.95rem;
+}
+
 /* Sidebar add button */
 .sidebar-add-btn {
   display: flex;

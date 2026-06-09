@@ -545,3 +545,89 @@
 }
 
 .detail-collection.hidden { display: none; }
+
+/* ── Similar Movies ────────────────────────────────── */
+.detail-similar-grid {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--metal-mid) transparent;
+}
+
+.detail-similar-grid::-webkit-scrollbar {
+  height: 4px;
+}
+
+.detail-similar-grid::-webkit-scrollbar-thumb {
+  background: var(--metal-mid);
+  border-radius: 2px;
+}
+
+.detail-similar-item {
+  flex-shrink: 0;
+  width: 120px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.detail-similar-item:hover {
+  transform: translateY(-2px);
+}
+
+.detail-similar-poster {
+  width: 120px;
+  height: 180px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--metal-dark);
+  display: block;
+}
+
+.detail-similar-noposter {
+  width: 120px;
+  height: 180px;
+  border-radius: 4px;
+  background: var(--metal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--metal-mid);
+}
+
+.detail-similar-title {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-similar-add {
+  margin-top: 4px;
+  padding: 3px 0;
+  width: 100%;
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--gold-dim);
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.detail-similar-add:hover {
+  background: var(--gold-dim);
+  color: #fff;
+}
+
+.detail-similar-add.added {
+  border-color: var(--metal-mid);
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}

@@ -114,6 +114,7 @@ async function switchList(listId) {
 
   updateState((draft) => {
     draft.currentListId = listId;
+    draft.discoverTab = null;
   });
   resetFilters();
   localStorage.setItem('current_list_id', listId);

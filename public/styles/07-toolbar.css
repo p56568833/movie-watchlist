@@ -93,3 +93,34 @@
 .list-search-input:focus {
   border-color: var(--gold-dim);
 }
+
+/* ── Discover Tabs ─────────────────────────────────── */
+.discover-section.hidden { display: none; }
+
+.discover-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--metal-edge);
+}
+
+.discover-tab {
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.discover-tab:hover {
+  color: var(--text);
+}
+
+.discover-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--red);
+}

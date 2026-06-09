@@ -11,6 +11,8 @@ const state = {
   existingTmdbIds: new Set(),
   tmdbKey: localStorage.getItem('tmdb_api_key') || '',
   moviesVersion: 0,
+  discoverTab: null,
+  discoverMovies: [],
 };
 
 const listeners = {};
@@ -75,6 +77,7 @@ function snapshot() {
     tmdbKey: state.tmdbKey,
     filters: state.filters,
     moviesVersion: state.moviesVersion,
+    discoverTab: state.discoverTab,
   };
 }
 

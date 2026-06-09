@@ -31,6 +31,11 @@
         <!-- Populated by JS -->
       </nav>
 
+      <div class="sidebar-discover" id="sidebarDiscover">
+        <span class="sidebar-discover-icon">🔥</span>
+        发现
+      </div>
+
       <button class="sidebar-add-btn" id="sidebarAddBtn" aria-label="新建片单">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -102,6 +107,15 @@
           <span id="activeTagName" class="active-tag-name"></span>
           <button id="clearTagFilter" class="active-tag-clear" aria-label="清除标签筛选">✕</button>
         </div>
+      </section>
+
+      <!-- Discover Section -->
+      <section class="discover-section hidden" id="discoverSection">
+        <div class="discover-tabs">
+          <button class="discover-tab active" data-tab="popular">🔥 流行</button>
+          <button class="discover-tab" data-tab="now_playing">🎬 热映</button>
+        </div>
+        <div class="movie-grid" id="discoverGrid"></div>
       </section>
 
       <!-- Movie Grid -->
@@ -253,7 +267,7 @@
               <span class="detail-user-tags" id="detailTags"></span>
             </div>
             <div class="detail-user-row" id="detailNotesRow">
-              <span class="detail-user-label">备注</span>
+              <span class="detail-user-label">简介</span>
               <p class="detail-user-notes" id="detailNotes"></p>
             </div>
           </div>
@@ -270,10 +284,10 @@
             <div class="detail-cast" id="detailCast"></div>
           </div>
 
-          <!-- Overview -->
-          <div class="detail-section">
-            <h3 class="detail-section-title">简介</h3>
-            <p class="detail-overview" id="detailOverview"></p>
+          <!-- Similar Movies -->
+          <div class="detail-section" id="detailSimilarSection" style="display:none">
+            <h3 class="detail-section-title">相似推荐</h3>
+            <div class="detail-similar-grid" id="detailSimilar"></div>
           </div>
 
           <!-- Actions -->

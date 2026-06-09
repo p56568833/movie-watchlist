@@ -13,6 +13,7 @@ import { initTMDBSearch } from './tmdbSearch.js';
 import { initPersonDetail, openPersonDetail } from './personDetail.js';
 import { $ } from './dom.js';
 import { initNavigation } from './navigation.js';
+import { initDiscover, configureDiscover } from './discover.js';
 
 let isLoginMode = true;
 
@@ -95,6 +96,7 @@ async function startApp() {
   }
 
   configureMovies({ onOpenMovie: openDetail });
+  configureDiscover({ onOpenMovie: openDetail });
   initNavigation({ openDetail, openPerson: openPersonDetail });
 
   initDeletePopover();
@@ -106,6 +108,7 @@ async function startApp() {
   initSettings();
   initTMDBSearch();
   setupEvents();
+  initDiscover();
 
   await loadLists();
 }

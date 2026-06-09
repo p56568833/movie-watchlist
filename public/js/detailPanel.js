@@ -8,7 +8,7 @@ import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 import { goPerson } from './navigation.js';
 import { showDeleteConfirm, closeDeleteConfirm } from './deleteConfirm.js';
-import { fetchTMDBMovieWithCredits } from './tmdbApi.js';
+import { fetchTMDBMovieWithCredits, fetchSimilarMovies, getCachedMovie, fetchTMDBGenres, getTagline } from './tmdbApi.js';
 
 let currentDetailMovie = null;
 let _lastTmdbData = null;
@@ -29,13 +29,14 @@ export async function openDetail(movie) {
     try {
       const tmdb = await fetchTMDBMovieWithCredits(movie.tmdb_id);
       renderTMDBDetails(tmdb);
+      loadSimilarMovies(movie.tmdb_id);
     } catch {
       $('#detailCast').innerHTML = '';
-      $('#detailOverview').textContent = '暂无简介';
+      $('#detailSimilar').innerHTML = '';
     }
   } else {
     $('#detailCast').innerHTML = '';
-    $('#detailOverview').textContent = '暂无简介';
+    $('#detailSimilar').innerHTML = '';
   }
 }
 
@@ -135,7 +136,8 @@ function resetDetail(movie) {
   $('#detailCollection').classList.add('hidden');
   $('#detailTmdbRating').classList.add('hidden');
   $('#detailTmdbRating').innerHTML = '';
-  $('#detailOverview').textContent = '加载中...';
+  $('#detailSimilar').innerHTML = '';
+  $('#detailSimilarSection').style.display = 'none';
   $('#detailCast').innerHTML = '<span class="detail-loading">加载中...</span>';
   $('#detailDirector').innerHTML = '';
   $('#detailTagsRow').classList.add('hidden');
@@ -257,8 +259,6 @@ function renderTMDBDetails(tmdb) {
     $('#detailCast').innerHTML = '';
   }
 
-  $('#detailOverview').textContent = tmdb.overview || '暂无简介';
-
   // Bind click handlers for director and cast chips
   const bindChip = (chip) => {
     chip.addEventListener('click', (e) => {
@@ -289,3 +289,93 @@ function countryFlag(iso) {
   return String.fromCodePoint(0x1F1E6 + a.charCodeAt(0) - 65)
        + String.fromCodePoint(0x1F1E6 + a.charCodeAt(1) - 65);
 }
+
+async function loadSimilarMovies(tmdbId) {
+  const state = getState();
+  const movies = await fetchSimilarMovies(tmdbId);
+  if (!movies.length) return;
+
+  const container = $('#detailSimilar');
+  const section = $('#detailSimilarSection');
+  const added = state.existingTmdbIds;
+
+  container.innerHTML = movies.map(m => {
+    const poster = m.poster_path
+      ? `<img class="detail-similar-poster" src="https://image.tmdb.org/t/p/w200${m.poster_path}" alt="" loading="lazy">`
+      : '<div class="detail-similar-noposter">🎬</div>';
+    const year = m.release_date ? m.release_date.slice(0, 4) : '';
+    const already = added.has(m.id);
+    return `
+      <div class="detail-similar-item" data-tmdb-id="${m.id}">
+        ${poster}
+        <div class="detail-similar-title">${esc(m.title)}${year ? ` (${year})` : ''}</div>
+        <button class="detail-similar-add${already ? ' added' : ''}" data-action="add-similar" ${already ? 'disabled' : ''}>${already ? '✓ 已添加' : '+ 添加'}</button>
+      </div>
+    `;
+  }).join('');
+
+  section.style.display = '';
+
+  container.onclick = async (e) => {
+    const btn = e.target.closest('[data-action="add-similar"]');
+    if (btn && !btn.classList.contains('added')) {
+      e.stopPropagation();
+      await addSimilarMovie(btn);
+      return;
+    }
+
+    const item = e.target.closest('.detail-similar-item');
+    if (item) {
+      const id = Number(item.dataset.tmdbId);
+      const cached = getCachedMovie(id);
+      if (cached) {
+        push({ type: 'movie', movie: { ...currentDetailMovie } });
+        openDetail({ tmdb_id: id, title: cached.title, year: cached.year, poster_path: cached.poster_path });
+      }
+    }
+  };
+}
+
+async function addSimilarMovie(btn) {
+  const item = btn.closest('.detail-similar-item');
+  const tmdbId = Number(item.dataset.tmdbId);
+  const cached = getCachedMovie(tmdbId);
+  if (!cached) return;
+
+  btn.textContent = '...'; btn.disabled = true;
+  const state = getState();
+
+  try {
+    const [genres, tagline] = await Promise.all([
+      fetchTMDBGenres(tmdbId).catch(() => []),
+      getTagline(tmdbId).catch(() => ''),
+    ]);
+
+    await api(`/api/lists/${state.currentListId}/movies`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: cached.title,
+        year: cached.year ? Number(cached.year) : null,
+        poster_path: cached.poster_path || '',
+        tmdb_id: tmdbId,
+        rating: cached.vote_average || 0,
+        status: 'watched',
+        tags: genres,
+        tagline,
+        notes: cached.overview || '',
+      }),
+    });
+
+    updateState(draft => { draft.existingTmdbIds.add(tmdbId); });
+    updateState(d => { d.moviesVersion++; });
+    btn.classList.add('added');
+    btn.textContent = '✓ 已添加';
+    showToast(`已添加《${cached.title}》`);
+  } catch (err) {
+    showToast(err.message || '添加失败', true);
+    btn.textContent = '+ 添加';
+    btn.disabled = false;
+  }
+}
+
+
