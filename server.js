@@ -1,5 +1,4 @@
 const app = require('./app');
-const db = require('./db');
 const os = require('os');
 
 const PORT = process.env.PORT || 3000;
@@ -21,9 +20,10 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`   手机访问: http://${ip}:${PORT}`);
 });
 
-// Graceful shutdown (for Railway)
+// Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('Shutting down gracefully…');
-  db.flushDb();
   server.close(() => process.exit(0));
 });
+
+module.exports = server;

@@ -1,202 +1,156 @@
-const initSqlJs = require('sql.js');
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@libsql/client');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'movies.db');
+// ── Client setup ─────────────────────────────────────
 
-let db = null;
+const tursoUrl = process.env.TURSO_URL;
+const tursoToken = process.env.TURSO_AUTH_TOKEN;
 
-async function getDb() {
-  if (db) return db;
+// Turso cloud when credentials present; local SQLite file otherwise (dev + tests)
+let client = tursoUrl
+  ? createClient({ url: tursoUrl, authToken: tursoToken })
+  : createClient({ url: `file:${process.env.DB_PATH || 'movies.db'}` });
 
-  const SQL = await initSqlJs();
+let initialized = false;
+let initPromise = null;
 
-  if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(buffer);
-    migrate(db);
-  } else {
-    db = new SQL.Database();
-    createTables(db);
-  }
+async function initDb() {
+  if (initialized) return;
 
-  save();
-  return db;
-}
+  // Serialize concurrent init calls
+  if (initPromise) return initPromise;
 
-// ── Schema ────────────────────────────────────────────
+  initPromise = (async () => {
+    // Check if tables exist
+    const rs = await client.execute(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='lists'"
+    );
 
-function createTables(d) {
-  d.run(`
-    CREATE TABLE IF NOT EXISTS lists (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now'))
-    )
-  `);
+    if (rs.rows.length === 0) {
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS lists (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now'))
+        )
+      `);
 
-  d.run(`
-    CREATE TABLE IF NOT EXISTS movies (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      list_id INTEGER NOT NULL DEFAULT 1,
-      title TEXT NOT NULL,
-      year INTEGER,
-      director TEXT DEFAULT '',
-      poster_url TEXT DEFAULT '',
-      poster_path TEXT DEFAULT '',
-      tmdb_id INTEGER,
-      rating INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'want_to_watch',
-      notes TEXT DEFAULT '',
-      tags TEXT DEFAULT '[]',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
-    )
-  `);
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS movies (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          list_id INTEGER NOT NULL DEFAULT 1,
+          title TEXT NOT NULL,
+          year INTEGER,
+          director TEXT DEFAULT '',
+          poster_url TEXT DEFAULT '',
+          poster_path TEXT DEFAULT '',
+          tmdb_id INTEGER,
+          rating INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'want_to_watch',
+          notes TEXT DEFAULT '',
+          tags TEXT DEFAULT '[]',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+        )
+      `);
 
-  // Create default list if none exists
-  const count = d.exec('SELECT COUNT(*) as c FROM lists');
-  if (count.length && count[0].values[0][0] === 0) {
-    d.run(`INSERT INTO lists (name, description) VALUES ('我的片单', '默认片单')`);
-  }
-}
-
-function migrate(d) {
-  // Detect if migration is needed
-  let hasLists = false;
-  try {
-    d.exec('SELECT 1 FROM lists LIMIT 1');
-    hasLists = true;
-  } catch { /* table doesn't exist */ }
-
-  if (!hasLists) {
-    // Create lists table
-    d.run(`
-      CREATE TABLE IF NOT EXISTS lists (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT DEFAULT '',
-        created_at TEXT DEFAULT (datetime('now'))
-      )
-    `);
-    d.run(`INSERT INTO lists (name, description) VALUES ('我的片单', '默认片单')`);
-
-    // Add new columns to existing movies table (ignore errors if already exist)
-    for (const col of [
-      'list_id INTEGER NOT NULL DEFAULT 1',
-      'tmdb_id INTEGER',
-      'poster_path TEXT DEFAULT \'\'',
-    ]) {
-      try { d.run(`ALTER TABLE movies ADD COLUMN ${col}`); } catch { /* already exists */ }
+      // Create default list if none exists
+      const countRs = await client.execute('SELECT COUNT(*) as c FROM lists');
+      if (countRs.rows[0].c === 0) {
+        await client.execute(
+          "INSERT INTO lists (name, description) VALUES ('我的片单', '默认片单')"
+        );
+      }
     }
 
-    // Assign existing movies to default list
-    try { d.run(`UPDATE movies SET list_id = 1 WHERE list_id IS NULL OR list_id = 0`); } catch { /* no rows */ }
+    initialized = true;
+    initPromise = null;
+  })();
 
-    save();
-  }
+  return initPromise;
 }
 
-let _saveTimer = null;
-function save() {
-  if (!db) return;
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => {
-    _saveTimer = null;
-    const data = db.export();
-    fs.writeFileSync(DB_PATH, Buffer.from(data));
-  }, 300);
+// ── Reset helpers (for tests) ─────────────────────────
+
+function getDb() {
+  return client;
 }
 
 function flushDb() {
-  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
-  if (!db) return;
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+  // Turso writes are synchronous — nothing to flush
 }
 
 function resetDb() {
-  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
-  if (db) { db.close(); db = null; }
+  initialized = false;
+  initPromise = null;
+  // Close old connection so file handle is released (needed for tests)
+  try { client.close(); } catch { /* ok */ }
+  // Recreate client pointing to the same URL / file
+  client = tursoUrl
+    ? createClient({ url: tursoUrl, authToken: tursoToken })
+    : createClient({ url: `file:${process.env.DB_PATH || 'movies.db'}` });
 }
 
 // ── Lists CRUD ────────────────────────────────────────
 
 async function getAllLists() {
-  const d = await getDb();
-  const stmt = d.prepare('SELECT * FROM lists ORDER BY created_at ASC');
-  const rows = [];
-  while (stmt.step()) rows.push(stmt.getAsObject());
-  stmt.free();
-  return rows;
+  await initDb();
+  const rs = await client.execute('SELECT * FROM lists ORDER BY created_at ASC');
+  return rs.rows;
 }
 
 async function getListById(id) {
-  const d = await getDb();
-  const stmt = d.prepare('SELECT * FROM lists WHERE id = ?');
-  stmt.bind([id]);
-  let row = null;
-  if (stmt.step()) row = stmt.getAsObject();
-  stmt.free();
-  return row;
+  await initDb();
+  const rs = await client.execute({
+    sql: 'SELECT * FROM lists WHERE id = ?',
+    args: [id],
+  });
+  return rs.rows[0] || null;
 }
 
 async function createList({ name, description }) {
-  const d = await getDb();
-  const stmt = d.prepare('INSERT INTO lists (name, description) VALUES (?, ?)');
-  stmt.bind([name, description || '']);
-  stmt.step();
-  stmt.free();
-
-  const idStmt = d.prepare('SELECT last_insert_rowid() as id');
-  idStmt.step();
-  const { id } = idStmt.getAsObject();
-  idStmt.free();
-  save();
+  await initDb();
+  const rs = await client.execute({
+    sql: 'INSERT INTO lists (name, description) VALUES (?, ?)',
+    args: [name, description || ''],
+  });
+  const id = Number(rs.lastInsertRowid);
+  if (!Number.isFinite(id)) throw new Error('Insert failed: no rowid returned');
   return getListById(id);
 }
 
 async function updateList(id, { name, description }) {
-  const d = await getDb();
+  await initDb();
   const existing = await getListById(id);
   if (!existing) return null;
 
-  const stmt = d.prepare('UPDATE lists SET name=?, description=? WHERE id=?');
-  stmt.bind([name ?? existing.name, description ?? existing.description, id]);
-  stmt.step();
-  stmt.free();
-  save();
+  await client.execute({
+    sql: 'UPDATE lists SET name=?, description=? WHERE id=?',
+    args: [name ?? existing.name, description ?? existing.description, id],
+  });
   return getListById(id);
 }
 
 async function deleteList(id) {
-  const d = await getDb();
-  // Prevent deleting the last list
-  const count = d.exec('SELECT COUNT(*) as c FROM lists');
-  if (count.length && count[0].values[0][0] <= 1) {
+  await initDb();
+  const countRs = await client.execute('SELECT COUNT(*) as c FROM lists');
+  if (countRs.rows[0].c <= 1) {
     throw new Error('不能删除最后一个片单');
   }
-  // Cascade: delete all movies in this list (within transaction)
-  d.run('BEGIN');
-  try {
-    let stmt = d.prepare('DELETE FROM movies WHERE list_id = ?');
-    stmt.bind([id]); stmt.step(); stmt.free();
-    stmt = d.prepare('DELETE FROM lists WHERE id = ?');
-    stmt.bind([id]); stmt.step(); stmt.free();
-    d.run('COMMIT');
-    save();
-    return { deleted: true };
-  } catch (e) {
-    d.run('ROLLBACK');
-    throw e;
-  }
+
+  // Atomic batch within a transaction
+  await client.batch([
+    { sql: 'DELETE FROM movies WHERE list_id = ?', args: [id] },
+    { sql: 'DELETE FROM lists WHERE id = ?', args: [id] },
+  ], 'write');
+
+  return { deleted: true };
 }
 
 // ── Movies CRUD (list-scoped) ─────────────────────────
 
 async function getMoviesByList(listId, { search, status, tag, sort } = {}) {
-  const d = await getDb();
+  await initDb();
   let sql = 'SELECT * FROM movies WHERE list_id = ?';
   const params = [listId];
 
@@ -218,64 +172,47 @@ async function getMoviesByList(listId, { search, status, tag, sort } = {}) {
   else if (sort === 'rating') sql += ' ORDER BY rating DESC';
   else sql += ' ORDER BY created_at DESC';
 
-  const stmt = d.prepare(sql);
-  stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) rows.push(stmt.getAsObject());
-  stmt.free();
-  return rows;
+  const rs = await client.execute({ sql, args: params });
+  return rs.rows;
 }
 
 async function getMovieById(id) {
-  const d = await getDb();
-  const stmt = d.prepare('SELECT * FROM movies WHERE id = ?');
-  stmt.bind([id]);
-  let row = null;
-  if (stmt.step()) row = stmt.getAsObject();
-  stmt.free();
-  return row;
+  await initDb();
+  const rs = await client.execute({
+    sql: 'SELECT * FROM movies WHERE id = ?',
+    args: [id],
+  });
+  return rs.rows[0] || null;
 }
 
 async function createMovie({ list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags }) {
-  const d = await getDb();
-  const stmt = d.prepare(
-    `INSERT INTO movies (list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  );
-  stmt.bind([
-    list_id,
-    title,
-    year || null,
-    director || '',
-    poster_url || '',
-    poster_path || '',
-    tmdb_id || null,
-    rating || 0,
-    status || 'want_to_watch',
-    notes || '',
-    JSON.stringify(tags || []),
-  ]);
-  stmt.step();
-  stmt.free();
-
-  const idStmt = d.prepare('SELECT last_insert_rowid() as id');
-  idStmt.step();
-  const { id } = idStmt.getAsObject();
-  idStmt.free();
-  save();
+  await initDb();
+  const rs = await client.execute({
+    sql: `INSERT INTO movies (list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      list_id,
+      title,
+      year || null,
+      director || '',
+      poster_url || '',
+      poster_path || '',
+      tmdb_id || null,
+      rating || 0,
+      status || 'want_to_watch',
+      notes || '',
+      JSON.stringify(tags || []),
+    ],
+  });
+  const id = Number(rs.lastInsertRowid);
+  if (!Number.isFinite(id)) throw new Error('Insert failed: no rowid returned');
   return getMovieById(id);
 }
 
 async function updateMovie(id, fields) {
-  const d = await getDb();
+  await initDb();
   const existing = await getMovieById(id);
   if (!existing) return null;
-
-  // Validate list_id if changing lists
-  if (fields.list_id !== undefined) {
-    const targetList = await getListById(fields.list_id);
-    if (!targetList) throw new Error('目标片单不存在');
-  }
 
   const set = (key, fallback) => fields[key] !== undefined ? fields[key] : existing[key];
   const title = set('title');
@@ -290,28 +227,21 @@ async function updateMovie(id, fields) {
   const tags = fields.tags !== undefined ? JSON.stringify(fields.tags) : existing.tags;
   const list_id = set('list_id');
 
-  const stmt = d.prepare(
-    `UPDATE movies SET title=?, year=?, director=?, poster_url=?, poster_path=?, tmdb_id=?, rating=?, status=?, notes=?, tags=?, list_id=? WHERE id=?`
-  );
-  stmt.bind([title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, list_id, id]);
-  stmt.step();
-  stmt.free();
-  save();
+  await client.execute({
+    sql: `UPDATE movies SET title=?, year=?, director=?, poster_url=?, poster_path=?, tmdb_id=?, rating=?, status=?, notes=?, tags=?, list_id=? WHERE id=?`,
+    args: [title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, list_id, id],
+  });
   return getMovieById(id);
 }
 
 async function deleteMovie(id) {
-  const d = await getDb();
-  const stmt = d.prepare('DELETE FROM movies WHERE id = ?');
-  stmt.bind([id]);
-  stmt.step();
-  stmt.free();
-  save();
+  await initDb();
+  await client.execute({ sql: 'DELETE FROM movies WHERE id = ?', args: [id] });
   return { deleted: true };
 }
 
 async function getTagsByList(listId) {
-  const d = await getDb();
+  await initDb();
   const movies = await getMoviesByList(listId);
   const tagSet = new Set();
   for (const m of movies) {

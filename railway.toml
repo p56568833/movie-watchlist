@@ -1,9 +1,0 @@
-[service]
-  port = 3000
-
-[deploy]
-  healthcheckPath = "/health"
-
-[volumes]
-  [volumes.data]
-    mountPath = "/data"

@@ -4,14 +4,9 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
-const path = require('node:path');
-const fs = require('node:fs');
-const os = require('node:os');
 
-// Use a temp file so tests don't touch the real database
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'moviedb-'));
-const DB_PATH = path.join(tmpDir, 'test.db');
-process.env.DB_PATH = DB_PATH;
+// Use in-memory SQLite for tests — no file locking issues
+process.env.DB_PATH = ':memory:';
 
 // Must come after DB_PATH is set
 const db = require('../db');
@@ -35,17 +30,12 @@ after(async () => {
   if (server) {
     await new Promise((resolve) => server.close(resolve));
   }
-  // Flush + reset to release DB handle, then clean up temp files
-  db.flushDb();
   db.resetDb();
-  try { fs.rmSync(tmpDir, { recursive: true }); } catch { /* ok */ }
 });
 
 beforeEach(async () => {
-  // Reset DB to a clean state for each top-level describe block
+  // Reset DB to a clean state for each test (in-memory: resetDb recreates a fresh DB)
   db.resetDb();
-  // Delete the temp file so next getDb() creates a fresh DB
-  try { fs.unlinkSync(DB_PATH); } catch { /* ok */ }
 });
 
 // ═══════════════════════════════════════════════════════

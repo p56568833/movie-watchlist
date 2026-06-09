@@ -3,20 +3,14 @@
 
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert');
-const path = require('node:path');
-const fs = require('node:fs');
-const os = require('node:os');
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'moviedb-unit-'));
-const DB_PATH = path.join(tmpDir, 'test.db');
-process.env.DB_PATH = DB_PATH;
+// Use in-memory SQLite for tests — no file locking issues
+process.env.DB_PATH = ':memory:';
 
 const db = require('../db');
 
 after(() => {
-  db.flushDb();
   db.resetDb();
-  try { fs.rmSync(tmpDir, { recursive: true }); } catch { /* ok */ }
 });
 
 // ═══════════════════════════════════════════════════════
@@ -25,9 +19,8 @@ after(() => {
 
 describe('Schema initialization', () => {
   it('creates default list on fresh DB', async () => {
-    // Ensure clean slate
+    // Ensure clean slate (in-memory: resetDb recreates a fresh DB)
     db.resetDb();
-    try { fs.unlinkSync(DB_PATH); } catch { /* ok */ }
 
     const lists = await db.getAllLists();
     assert.strictEqual(lists.length, 1);
@@ -223,8 +216,7 @@ describe('Tags', () => {
   it('getTagsByList handles malformed tags JSON gracefully', async () => {
     // Simulate a movie with non-array tags stored as a plain string
     const d = await db.getDb();
-    d.run(`INSERT INTO movies (list_id, title, tags) VALUES (1, 'BadTags', 'not-json')`);
-    db.flushDb();
+    await d.execute(`INSERT INTO movies (list_id, title, tags) VALUES (1, 'BadTags', 'not-json')`);
 
     const tags = await db.getTagsByList(1);
     assert.ok(Array.isArray(tags));
