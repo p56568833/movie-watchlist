@@ -125,6 +125,7 @@ function cacheTMDBResults(results) {
       year: movie.release_date ? movie.release_date.slice(0, 4) : '',
       poster_path: movie.poster_path || '',
       overview: movie.overview || '',
+      vote_average: movie.vote_average || 0,
     });
   });
 }
@@ -240,7 +241,7 @@ async function addMovieFromDropdown(event) {
         year: cached.year ? Number(cached.year) : null,
         poster_path: cached.poster_path,
         tmdb_id: tmdbId,
-        rating: 0,
+        rating: cached.vote_average ? Math.round(cached.vote_average / 2) : 0,
         status: 'watched',
         tags: genres,
         notes: cached.overview || '',
