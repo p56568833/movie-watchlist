@@ -83,6 +83,30 @@ describe('Auth', () => {
     const res = await fetch(`${baseURL}/api/lists`);
     assert.strictEqual(res.status, 401);
   });
+
+  it('me returns the verified token user without a database lookup', async () => {
+    const registerRes = await fetch(`${baseURL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'device-user', password: 'pass123' }),
+    });
+    const registered = await registerRes.json();
+
+    await db.getDb().execute({
+      sql: 'DELETE FROM users WHERE id = ?',
+      args: [registered.user.id],
+    });
+
+    const res = await fetch(`${baseURL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${registered.token}` },
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.deepStrictEqual(await res.json(), {
+      id: registered.user.id,
+      username: registered.user.username,
+    });
+  });
 });
 
 // ═══════════════════════════════════════════════════════

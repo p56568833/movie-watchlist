@@ -36,6 +36,7 @@ function authMiddleware(req, res, next) {
     const token = header.slice(7);
     const payload = jwt.verify(token, JWT_SECRET);
     req.userId = payload.id;
+    req.user = { id: payload.id, username: payload.username };
     next();
   } catch {
     return res.status(401).json({ error: '登录已过期，请重新登录' });
@@ -81,14 +82,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', async (req, res) => {
-  try {
-    const user = await db.getUserById(req.userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch user' });
-  }
+  res.json(req.user);
 });
 
 // ── TMDB Proxy ────────────────────────────────────────
