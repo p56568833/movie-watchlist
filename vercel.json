@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "app.js",
-      "use": "@vercel/node"
+  "functions": {
+    "app.js": {
+      "includeFiles": "public/**"
     }
-  ],
+  },
   "routes": [
     { "src": "/(.*)", "dest": "app.js" }
   ]
