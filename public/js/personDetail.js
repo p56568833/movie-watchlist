@@ -1,7 +1,7 @@
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { esc } from './utils.js';
-import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, DEPT_CN } from './constants.js';
+import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, TMDB_PROXY, DEPT_CN } from './constants.js';
 import { api } from './api.js';
 import { showToast } from './toast.js';
 import { loadMovies } from './movies.js';
@@ -84,8 +84,8 @@ async function loadPersonDetail(personId) {
 
   try {
     const [details, credits] = await Promise.all([
-      fetch(`https://api.themoviedb.org/3/person/${personId}?api_key=${key}&language=zh-CN`).then(r => r.json()),
-      fetch(`https://api.themoviedb.org/3/person/${personId}/movie_credits?api_key=${key}&language=zh-CN`).then(r => r.json()),
+      fetch(`${TMDB_PROXY}/person/${personId}?api_key=${key}&language=zh-CN`).then(r => r.json()),
+      fetch(`${TMDB_PROXY}/person/${personId}/movie_credits?api_key=${key}&language=zh-CN`).then(r => r.json()),
     ]);
     renderPersonDetails(details);
     renderFilmography(credits);
@@ -249,7 +249,7 @@ async function addPersonMovie(btn) {
     let genres = [];
     const state = getState();
     if (state.tmdbKey) {
-      const gRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`);
+      const gRes = await fetch(`${TMDB_PROXY}/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`);
       if (gRes.ok) { const details = await gRes.json(); genres = (details.genres || []).map(g => g.name); }
     }
     const rating = cached.vote_average || 0;

@@ -1,7 +1,7 @@
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { posterUrl, backdropUrl, esc } from './utils.js';
-import { TMDB_PROFILE_BASE } from './constants.js';
+import { TMDB_PROFILE_BASE, TMDB_PROXY } from './constants.js';
 import { api } from './api.js';
 import { deleteMovie, loadMovies } from './movies.js';
 import { showToast } from './toast.js';
@@ -186,7 +186,7 @@ function renderLocalMovieDetails(movie) {
 }
 
 async function fetchTMDBDetails(tmdbId, tmdbKey) {
-  const url = `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbKey}&language=zh-CN&append_to_response=credits`;
+  const url = `${TMDB_PROXY}/movie/${tmdbId}?api_key=${tmdbKey}&language=zh-CN&append_to_response=credits`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('TMDB fetch failed');
   return res.json();
