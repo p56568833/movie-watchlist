@@ -9,6 +9,7 @@ import { push, pop, canGoBack, clearStack } from './detailStack.js';
 
 let currentDetailMovie = null;
 let _tmdbCredits = null;
+let _lastTmdbData = null;
 
 let _openPersonDetail = () => console.warn('[detailPanel] setPersonDetailOpener 未被调用，导演/演员点击无效');
 export function setPersonDetailOpener(fn) { _openPersonDetail = fn; }
@@ -47,6 +48,7 @@ export function closeDetail() {
   clearStack();
   currentDetailMovie = null;
   _tmdbCredits = null;
+  _lastTmdbData = null;
 }
 
 export function initDetailPanel() {
@@ -73,7 +75,7 @@ export function initDetailPanel() {
     closeDetail();
   });
 
-  // Collection button
+  // Add-to-list button
   $('#detailCollectBtn').addEventListener('click', async () => {
     if (!currentDetailMovie) return;
     const state = getState();
@@ -81,6 +83,10 @@ export function initDetailPanel() {
     if (alreadyCollected) return;
 
     const movie = currentDetailMovie;
+    const tmdb = _lastTmdbData;
+    const tags = (movie.tags?.length ? movie.tags : (tmdb?.genres || []).map(g => g.name));
+    const notes = movie.notes || tmdb?.overview || '';
+
     try {
       await api(`/api/lists/${state.currentListId}/movies`, {
         method: 'POST',
@@ -89,17 +95,18 @@ export function initDetailPanel() {
           year: movie.year ? Number(movie.year) : null,
           poster_path: movie.poster_path || '',
           tmdb_id: movie.tmdb_id || null,
-          rating: movie.rating || 0,
+          rating: movie.rating || (tmdb?.vote_average || 0),
           status: 'watched',
-          tags: movie.tags || [],
+          tags,
+          notes,
         }),
       });
       updateState(draft => { draft.existingTmdbIds.add(movie.tmdb_id); });
       updateCollectButton(true);
-      showToast('已收藏');
+      showToast('已添加');
       loadMovies().catch(() => {});
     } catch (err) {
-      showToast(err.message || '收藏失败', true);
+      showToast(err.message || '添加失败', true);
     }
   });
 }
@@ -148,10 +155,10 @@ function updateCollectButton(collected) {
   const label = $('#detailCollectLabel');
   if (collected) {
     btn.classList.add('collected');
-    label.textContent = '已收藏';
+    label.textContent = '已添加';
   } else {
     btn.classList.remove('collected');
-    label.textContent = '收藏';
+    label.textContent = '添加';
   }
 }
 
@@ -186,6 +193,7 @@ async function fetchTMDBDetails(tmdbId, tmdbKey) {
 }
 
 function renderTMDBDetails(tmdb) {
+  _lastTmdbData = tmdb;
   const bgUrl = backdropUrl(tmdb) || posterUrl({ poster_path: tmdb.poster_path });
   if (bgUrl) {
     $('#detailBackdrop').src = bgUrl;
