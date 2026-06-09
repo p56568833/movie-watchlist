@@ -1,7 +1,21 @@
 export const TMDB_POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
 export const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
 export const TMDB_PROFILE_BASE = 'https://image.tmdb.org/t/p/w185';
-export const TMDB_PROXY = '/api/tmdb';
+
+const TMDB_DIRECT = 'https://api.themoviedb.org/3';
+const TMDB_PROXY = '/api/tmdb';
+let _tmdbBase = TMDB_PROXY; // default proxy (safe for China)
+
+export function getTMDBBase() { return _tmdbBase; }
+
+export async function detectTMDB() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 900);
+    await fetch(`${TMDB_DIRECT}/configuration`, { signal: ctrl.signal, mode: 'no-cors' });
+    _tmdbBase = TMDB_DIRECT;
+  } catch { /* stays on proxy */ }
+}
 
 export const DEPT_CN = {
   'Directing': '导演', 'Acting': '演员', 'Writing': '编剧',

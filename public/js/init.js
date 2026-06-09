@@ -1,3 +1,4 @@
+import { detectTMDB } from './constants.js';
 import { setupEvents } from './events.js';
 import { loadLists } from './lists.js';
 import { configureMovies } from './movies.js';
@@ -10,6 +11,7 @@ import { initTMDBSearch } from './tmdbSearch.js';
 import { initPersonDetail, setMovieDetailOpener, openPersonDetail } from './personDetail.js';
 
 export default async function init() {
+  detectTMDB(); // fire-and-forget: test direct TMDB access
   configureMovies({ onOpenMovie: openDetail });
 
   // Wire up cross-navigation between detail panels

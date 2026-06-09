@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, TMDB_PROXY, DEPT_CN } from './constants.js';
+import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, getTMDBBase, DEPT_CN } from './constants.js';
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { showToast } from './toast.js';
@@ -78,8 +78,8 @@ async function searchTMDB(query) {
   try {
     const params = `api_key=${state.tmdbKey}&query=${encodeURIComponent(query)}&language=zh-CN&page=1`;
     const [movieRes, personRes] = await Promise.all([
-      fetch(`${TMDB_PROXY}/search/movie?${params}`),
-      fetch(`${TMDB_PROXY}/search/person?${params}`),
+      fetch(`${getTMDBBase()}/search/movie?${params}`),
+      fetch(`${getTMDBBase()}/search/person?${params}`),
     ]);
 
     if (!movieRes.ok && !personRes.ok) {
@@ -265,7 +265,7 @@ async function fetchTMDBGenres(tmdbId) {
   if (!state.tmdbKey) return [];
 
   try {
-    const url = `${TMDB_PROXY}/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`;
+    const url = `${getTMDBBase()}/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`;
     const res = await fetch(url);
     if (!res.ok) return [];
     const details = await res.json();
