@@ -2,7 +2,8 @@ import { $ } from './dom.js';
 import { getState } from './state.js';
 import { posterUrl, backdropUrl, esc } from './utils.js';
 import { TMDB_PROFILE_BASE } from './constants.js';
-import { deleteMovie } from './movies.js';
+import { api } from './api.js';
+import { deleteMovie, loadMovies } from './movies.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 
 let currentDetailMovie = null;
@@ -156,6 +157,18 @@ function renderTMDBDetails(tmdb) {
   if (tmdb.vote_average) {
     $('#detailTmdbRating').classList.remove('hidden');
     $('#detailTmdbRating').innerHTML = `<span class="tmdb-star">★</span><span class="tmdb-score">${tmdb.vote_average.toFixed(1)}</span><span class="tmdb-votes">(${tmdb.vote_count} 票)</span>`;
+
+    // Lazy backfill: persist TMDB rating for cards that don't have one yet
+    if (currentDetailMovie && !currentDetailMovie.rating && tmdb.vote_average) {
+      const newRating = Math.round(tmdb.vote_average / 2);
+      api(`/api/movies/${currentDetailMovie.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ rating: newRating }),
+      }).then(() => {
+        if (currentDetailMovie) currentDetailMovie.rating = newRating;
+        loadMovies().catch(() => {});
+      }).catch(() => {});
+    }
   }
 
   if (tmdb.credits?.crew) {
