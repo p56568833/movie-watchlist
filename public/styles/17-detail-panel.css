@@ -221,179 +221,320 @@
 
 .detail-user-row.hidden { display: none; }
 
-/* ── Detail Sections (Director + Cast) ──────────────── */
+/* ═══════════════════════════════════════════════════════
+   Credits Panel — Director Card + Cast Tokens
+   Cinematic duotone · Dark glass · Red accent
+   ═══════════════════════════════════════════════════════ */
 
+/* ── Credits backdrop ───────────────────────────────── */
 .detail-section {
-  margin-bottom: 24px;
-}
-
-.detail-section-title {
-  font-family: var(--font-serif);
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin-bottom: 32px;
   position: relative;
-  padding-left: 14px;
 }
 
-.detail-section-title::before {
+.detail-section + .detail-section {
+  padding-top: 4px;
+}
+
+/* ── Section header ─────────────────────────────────── */
+.detail-section-title {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-section-title::after {
   content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 0.9em;
-  background: rgba(200,55,55,0.35);
-  border-radius: 2px;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(200,55,55,0.25) 0%,
+    rgba(200,55,55,0.06) 40%,
+    transparent 100%
+  );
 }
 
-/* Crew row (flex wrap for chips) */
+/* ── Crew container ─────────────────────────────────── */
 .detail-crew {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* ── Cast container ─────────────────────────────────── */
 .detail-cast {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-/* ── Shared chip base ───────────────────────────────── */
-.dir-chip-base,
-.director-chip,
-.cast-chip {
-  display: inline-flex;
+/* ═══════════════════════════════════════════════════════
+   DIRECTOR — Featured Credit Card
+   ═══════════════════════════════════════════════════════ */
+
+.director-card {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.025);
+  gap: 0;
+  position: relative;
+  min-width: 260px;
+  max-width: 420px;
+  height: 64px;
+  padding: 0 18px 0 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(200,55,55,0.06) 0%, transparent 70%),
+    linear-gradient(105deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%);
   border: 1px solid rgba(255,255,255,0.06);
-  color: var(--text-dim);
-  font-family: var(--font-sans);
+  border-radius: 34px;
   cursor: pointer;
-  transition: all 260ms cubic-bezier(0.4, 0, 0.2, 1);
-  vertical-align: middle;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow: visible;
+  font-family: var(--font-sans);
 }
 
-.cast-chip:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.12);
-  color: var(--text);
+.director-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 34px;
+  background: linear-gradient(
+    135deg,
+    rgba(200,55,55,0.15) 0%,
+    transparent 25%,
+    transparent 75%,
+    rgba(200,55,55,0.06) 100%
+  );
+  z-index: -1;
+  opacity: 0.7;
 }
 
-/* ── Director chip ──────────────────────────────────── */
-.director-chip {
-  height: 48px;
-  border-radius: 24px;
-  padding: 0 16px 0 5px;
-  border-color: rgba(200,55,55,0.15);
-  background: rgba(200,55,55,0.04);
-  box-shadow: 0 0 0 1px rgba(200,55,55,0.04);
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--text);
+.director-card:hover {
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(200,55,55,0.12) 0%, transparent 70%),
+    linear-gradient(105deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+  border-color: rgba(200,55,55,0.22);
+  box-shadow:
+    0 0 24px rgba(200,55,55,0.06),
+    0 4px 20px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
 }
 
-.director-chip:hover {
-  background: rgba(200,55,55,0.09);
-  border-color: rgba(200,55,55,0.28);
-  box-shadow: 0 0 14px rgba(200,55,55,0.08), 0 0 0 1px rgba(200,55,55,0.06);
-  color: #d4a09e;
+/* Red accent stripe */
+.director-card-accent {
+  position: absolute;
+  left: -1px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(200,55,55,0.5) 20%,
+    rgba(200,55,55,0.35) 80%,
+    transparent 100%
+  );
+  border-radius: 0 1px 1px 0;
 }
 
-.director-chip .director-chip-name,
-.director-chip .cast-chip-name {
-  padding-right: 4px;
+.director-card:hover .director-card-accent {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(200,55,55,0.7) 20%,
+    rgba(200,55,55,0.5) 80%,
+    transparent 100%
+  );
 }
 
-/* ── Cast chip ──────────────────────────────────────── */
-.cast-chip {
-  height: 42px;
-  border-radius: 21px;
-  padding: 0 14px 0 4px;
-  font-size: 0.8rem;
-  font-weight: 450;
-}
-
-/* ── Duotone avatars ────────────────────────────────── */
-.director-avatar,
-.cast-avatar {
+/* Director portrait */
+.director-card-avatar {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  margin-left: 12px;
+  margin-right: 14px;
   background: #1a1a1a;
-  /* Cinematic duotone: desaturated, warm, moody */
+  box-shadow:
+    0 0 0 1px rgba(200,55,55,0.12),
+    0 4px 16px rgba(0,0,0,0.5);
   filter:
-    grayscale(0.35)
-    saturate(0.55)
-    contrast(1.2)
-    brightness(0.82)
-    sepia(0.18);
-  transition: filter 260ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.director-chip:hover .director-avatar,
-.cast-chip:hover .cast-avatar {
-  filter:
-    grayscale(0.2)
-    saturate(0.7)
+    grayscale(0.3)
+    saturate(0.6)
     contrast(1.15)
-    brightness(0.9)
-    sepia(0.12);
+    brightness(0.85)
+    sepia(0.16);
+  transition: filter 300ms ease, box-shadow 300ms ease;
 }
 
-.director-avatar {
-  width: 40px;
-  height: 40px;
-  box-shadow: 0 0 0 1px rgba(200,55,55,0.12);
+.director-card:hover .director-card-avatar {
+  filter:
+    grayscale(0.15)
+    saturate(0.75)
+    contrast(1.1)
+    brightness(0.92)
+    sepia(0.1);
+  box-shadow:
+    0 0 0 2px rgba(200,55,55,0.2),
+    0 4px 20px rgba(200,55,55,0.08);
 }
 
-.cast-avatar {
-  width: 34px;
-  height: 34px;
-}
-
-/* ── Avatar placeholder (no photo) ──────────────────── */
-.director-avatar-placeholder,
-.cast-avatar-placeholder {
-  border-radius: 50%;
+/* Director placeholder */
+.director-card-avatar-plh {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #1c1c1c 0%, #282828 100%);
+  color: rgba(200,55,55,0.15);
+  font-size: 1.3rem;
+}
+
+/* Director info */
+.director-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-right: 4px;
+}
+
+.director-card-name {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 300ms ease;
+}
+
+.director-card:hover .director-card-name {
+  color: #dbb5b2;
+}
+
+.director-card-role {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 300ms ease;
+}
+
+.director-card:hover .director-card-role {
+  color: rgba(200,55,55,0.45);
+}
+
+/* ═══════════════════════════════════════════════════════
+   CAST — Premium Token Chips
+   ═══════════════════════════════════════════════════════ */
+
+.cast-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 44px;
+  padding: 0 14px 0 0;
+  background:
+    linear-gradient(105deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 22px;
+  cursor: pointer;
+  transition: all 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family: var(--font-sans);
+  color: var(--text-dim);
+  position: relative;
+}
+
+.cast-chip:hover {
+  background:
+    linear-gradient(105deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow:
+    0 2px 12px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  transform: translateY(-1px);
+  color: var(--text);
+}
+
+/* Avatar wrapper — embeds into the pill */
+.cast-chip-avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+  margin-right: 10px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1c1c1c 0%, #242424 100%);
-  color: rgba(200,55,55,0.2);
-  font-size: 0.9rem;
 }
 
-.director-avatar-placeholder {
-  width: 40px;
-  height: 40px;
-  box-shadow: 0 0 0 1px rgba(200,55,55,0.08);
+/* Cast avatar */
+.cast-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #1a1a1a;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 2px 8px rgba(0,0,0,0.35);
+  filter:
+    grayscale(0.28)
+    saturate(0.6)
+    contrast(1.15)
+    brightness(0.85)
+    sepia(0.16);
+  transition: filter 240ms ease, box-shadow 240ms ease;
 }
 
-.cast-avatar-placeholder {
-  width: 34px;
-  height: 34px;
+.cast-chip:hover .cast-avatar {
+  filter:
+    grayscale(0.12)
+    saturate(0.75)
+    contrast(1.1)
+    brightness(0.92)
+    sepia(0.1);
+  box-shadow:
+    0 0 0 1px rgba(200,55,55,0.15),
+    0 2px 10px rgba(0,0,0,0.4);
+}
+
+/* Cast placeholder */
+.cast-avatar-plh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  color: rgba(255,255,255,0.08);
   font-size: 0.75rem;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
 }
 
-/* ── Chip name ──────────────────────────────────────── */
-.director-chip-name,
+/* Cast name */
 .cast-chip-name {
+  font-size: 0.78rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
+  max-width: 100px;
 }
 
 .detail-overview {
