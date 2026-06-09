@@ -1,12 +1,15 @@
 import { api } from './api.js';
 import { $, $$ } from './dom.js';
-import { getState, updateState } from './state.js';
+import { getState, on, updateState } from './state.js';
 import { showToast } from './toast.js';
 import { createMovieCard } from './movieCard.js';
 import { showDeletePopover } from './deletePopover.js';
 
 let openMovieDetail = () => {};
 let listSearchTimer;
+
+// 订阅 moviesVersion，外部模块无需手动 import loadMovies
+on('moviesVersion', () => { loadMovies(); });
 
 export function configureMovies({ onOpenMovie }) {
   openMovieDetail = onOpenMovie;
@@ -75,7 +78,7 @@ export async function deleteMovie(id) {
   try {
     await api(`/api/movies/${id}`, { method: 'DELETE' });
     showToast('已删除');
-    await loadMovies();
+    updateState(d => { d.moviesVersion++; });
   } catch {
     showToast('删除失败', true);
   }

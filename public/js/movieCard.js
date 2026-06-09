@@ -90,12 +90,11 @@ export function createMovieCard(movie, index, handlers) {
     body.appendChild(tags);
   }
 
-  if (movie.notes) {
-    const notes = document.createElement('p');
-    notes.className = 'card-notes';
-    notes.textContent = movie.notes.length > 80 ? `${movie.notes.slice(0, 80)}...` : movie.notes;
-    body.appendChild(notes);
-  }
+  // Tagline first, fallback to notes (always render for uniform card height)
+  const sub = document.createElement('p');
+  sub.className = movie.tagline ? 'card-tagline' : 'card-notes';
+  sub.textContent = movie.tagline || (movie.notes?.length > 80 ? `${movie.notes.slice(0, 80)}...` : movie.notes || '');
+  body.appendChild(sub);
 
   card.appendChild(poster);
   card.appendChild(body);

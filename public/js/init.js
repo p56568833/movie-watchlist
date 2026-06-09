@@ -5,6 +5,7 @@ import { loadLists } from './lists.js';
 import { configureMovies } from './movies.js';
 import { openDetail, initDetailPanel } from './detailPanel.js';
 import { initDeletePopover } from './deletePopover.js';
+import { initDeleteConfirm } from './deleteConfirm.js';
 import { initListForm } from './listForm.js';
 import { initMovieForm } from './movieForm.js';
 import { initSettings } from './settings.js';
@@ -97,6 +98,7 @@ async function startApp() {
   initNavigation({ openDetail, openPerson: openPersonDetail });
 
   initDeletePopover();
+  initDeleteConfirm();
   initDetailPanel();
   initPersonDetail();
   initListForm();

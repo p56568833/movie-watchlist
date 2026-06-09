@@ -59,10 +59,16 @@ async function initDb() {
         status TEXT DEFAULT 'want_to_watch',
         notes TEXT DEFAULT '',
         tags TEXT DEFAULT '[]',
+        tagline TEXT DEFAULT '',
         created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
       )
     `);
+
+    // Add tagline column to existing movies (migration)
+    try {
+      await client.execute('ALTER TABLE movies ADD COLUMN tagline TEXT DEFAULT \'\'');
+    } catch { /* already exists */ }
 
     initialized = true;
     initPromise = null;
@@ -258,14 +264,14 @@ async function getMovieById(id) {
   return rs.rows[0] || null;
 }
 
-async function createMovie({ list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags }) {
+async function createMovie({ list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, tagline }) {
   await initDb();
   const rs = await client.execute({
-    sql: `INSERT INTO movies (list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO movies (list_id, title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, tagline)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       list_id, title, year || null, director || '', poster_url || '', poster_path || '',
-      tmdb_id || null, rating || 0, status || 'want_to_watch', notes || '', JSON.stringify(tags || []),
+      tmdb_id || null, rating || 0, status || 'want_to_watch', notes || '', JSON.stringify(tags || []), tagline || '',
     ],
   });
   const id = Number(rs.lastInsertRowid);
@@ -293,12 +299,13 @@ async function updateMovie(id, fields) {
   const rating = set('rating');
   const status = set('status');
   const notes = set('notes');
+  const tagline = set('tagline');
   const tags = fields.tags !== undefined ? JSON.stringify(fields.tags) : existing.tags;
   const list_id = set('list_id');
 
   await client.execute({
-    sql: `UPDATE movies SET title=?, year=?, director=?, poster_url=?, poster_path=?, tmdb_id=?, rating=?, status=?, notes=?, tags=?, list_id=? WHERE id=?`,
-    args: [title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, list_id, id],
+    sql: `UPDATE movies SET title=?, year=?, director=?, poster_url=?, poster_path=?, tmdb_id=?, rating=?, status=?, notes=?, tags=?, tagline=?, list_id=? WHERE id=?`,
+    args: [title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, tagline, list_id, id],
   });
   return getMovieById(id);
 }

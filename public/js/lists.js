@@ -4,6 +4,7 @@ import { getState, resetFilters, updateState } from './state.js';
 import { showToast } from './toast.js';
 import { esc } from './utils.js';
 import { loadMovies, resetToolbar } from './movies.js';
+import { showDeleteConfirm } from './deleteConfirm.js';
 
 export async function loadLists() {
   try {
@@ -28,8 +29,9 @@ export async function loadLists() {
 
     renderSidebar();
     await loadMovies();
-  } catch {
-    showToast('无法连接服务器', true);
+  } catch (err) {
+    console.error('loadLists failed:', err);
+    showToast(err.message || '无法连接服务器', true);
   }
 }
 
@@ -86,37 +88,24 @@ function deleteList(listId) {
   if (!list) return;
   if (state.lists.length <= 1) { showToast('不能删除最后一个片单', true); return; }
 
-  // Show custom confirm modal
-  $('#deleteConfirmText').innerHTML = `确定删除<strong>《${esc(list.name)}》</strong>吗？片单内所有电影也会被删除。`;
-  $('#deleteConfirmOverlay').classList.remove('hidden');
-
-  const cancelBtn = $('#deleteConfirmCancel');
-  const confirmBtn = $('#deleteConfirmBtn');
-
-  const cleanup = () => {
-    $('#deleteConfirmOverlay').classList.add('hidden');
-    cancelBtn.onclick = null;
-    confirmBtn.onclick = null;
-  };
-
-  cancelBtn.onclick = cleanup;
-
-  confirmBtn.onclick = async () => {
-    cleanup();
-    try {
-      await api(`/api/lists/${listId}`, { method: 'DELETE' });
-      const lists = await api('/api/lists');
-      const newCurrentId = state.currentListId === listId ? (lists[0]?.id ?? null) : state.currentListId;
-      updateState((draft) => { draft.lists = lists; draft.currentListId = newCurrentId; });
-      if (newCurrentId) localStorage.setItem('current_list_id', newCurrentId);
-      renderSidebar();
-      resetToolbar();
-      await loadMovies();
-      showToast('片单已删除');
-    } catch (err) {
-      showToast(err.message, true);
+  showDeleteConfirm(
+    `确定删除<strong>《${esc(list.name)}》</strong>吗？片单内所有电影也会被删除。`,
+    async () => {
+      try {
+        await api(`/api/lists/${listId}`, { method: 'DELETE' });
+        const lists = await api('/api/lists');
+        const newCurrentId = state.currentListId === listId ? (lists[0]?.id ?? null) : state.currentListId;
+        updateState((draft) => { draft.lists = lists; draft.currentListId = newCurrentId; });
+        if (newCurrentId) localStorage.setItem('current_list_id', newCurrentId);
+        renderSidebar();
+        resetToolbar();
+        updateState(d => { d.moviesVersion++; });
+        showToast('片单已删除');
+      } catch (err) {
+        showToast(err.message, true);
+      }
     }
-  };
+  );
 }
 
 async function switchList(listId) {
@@ -131,7 +120,7 @@ async function switchList(listId) {
 
   renderSidebar();
   resetToolbar();
-  await loadMovies();
+  updateState(d => { d.moviesVersion++; });
 }
 
 

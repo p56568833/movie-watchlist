@@ -4,13 +4,12 @@ import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { showToast } from './toast.js';
 import { esc } from './utils.js';
-import { loadMovies } from './movies.js';
+import { getCachedMovie, cacheMovieResult, fetchTMDBGenres, getTagline } from './tmdbApi.js';
 import { openSettings } from './settings.js';
 import { openPersonDetail } from './personDetail.js';
 import { openDetail } from './detailPanel.js';
 
 let tmdbTimer;
-const tmdbSearchCache = new Map();
 let lastPersons = [];
 
 export function initTMDBSearch() {
@@ -30,7 +29,6 @@ export function initTMDBSearch() {
 
 export function closeDropdown() {
   $('#tmdbDropdown').classList.remove('active');
-  $('#tmdbDropdown').innerHTML = '';
 }
 
 export function openTMDBSettings() {
@@ -119,15 +117,7 @@ async function searchTMDB(query) {
 }
 
 function cacheTMDBResults(results) {
-  results.forEach((movie) => {
-    tmdbSearchCache.set(movie.id, {
-      title: movie.title,
-      year: movie.release_date ? movie.release_date.slice(0, 4) : '',
-      poster_path: movie.poster_path || '',
-      overview: movie.overview || '',
-      vote_average: movie.vote_average || 0,
-    });
-  });
+  results.forEach(movie => { cacheMovieResult(movie); });
 }
 
 function renderDropdown(persons, movies) {
@@ -208,7 +198,7 @@ function handleDropdownClick(event) {
   const movieItem = event.target.closest('.tmdb-dropdown-item');
   if (movieItem) {
     const tmdbId = Number(movieItem.dataset.tmdbId);
-    const cached = tmdbSearchCache.get(tmdbId);
+    const cached = getCachedMovie(tmdbId);
     if (cached) {
       closeDropdown();
       openDetail({ tmdb_id: tmdbId, title: cached.title, year: cached.year, poster_path: cached.poster_path });
@@ -224,13 +214,16 @@ async function addMovieFromDropdown(event) {
   if (!item) return;
 
   const tmdbId = Number(item.dataset.tmdbId);
-  const cached = tmdbSearchCache.get(tmdbId);
+  const cached = getCachedMovie(tmdbId);
   if (!cached) return;
 
   button.textContent = '添加中...';
   button.disabled = true;
 
-  const genres = await fetchTMDBGenres(tmdbId);
+  const [genres, tagline] = await Promise.all([
+    fetchTMDBGenres(tmdbId),
+    getTagline(tmdbId),
+  ]);
   const state = getState();
 
   try {
@@ -244,6 +237,7 @@ async function addMovieFromDropdown(event) {
         rating: cached.vote_average || 0,
         status: 'watched',
         tags: genres,
+        tagline,
         notes: cached.overview || '',
       }),
     });
@@ -252,7 +246,7 @@ async function addMovieFromDropdown(event) {
     button.classList.add('added');
     button.textContent = '✓ 已收藏';
     updateState((draft) => { draft.existingTmdbIds.add(tmdbId); });
-    await loadMovies();
+    updateState(d => { d.moviesVersion++; });
   } catch (err) {
     showToast(err.message || '添加失败', true);
     button.textContent = '+ 添加';
@@ -260,17 +254,4 @@ async function addMovieFromDropdown(event) {
   }
 }
 
-async function fetchTMDBGenres(tmdbId) {
-  const state = getState();
-  if (!state.tmdbKey) return [];
 
-  try {
-    const url = `${getTMDBBase()}/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`;
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const details = await res.json();
-    return (details.genres || []).map((genre) => genre.name);
-  } catch {
-    return [];
-  }
-}

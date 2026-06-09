@@ -10,6 +10,7 @@ const state = {
   formTags: [],
   existingTmdbIds: new Set(),
   tmdbKey: localStorage.getItem('tmdb_api_key') || '',
+  moviesVersion: 0,
 };
 
 const listeners = {};
@@ -73,6 +74,7 @@ function snapshot() {
     movies: state.movies,
     tmdbKey: state.tmdbKey,
     filters: state.filters,
+    moviesVersion: state.moviesVersion,
   };
 }
 

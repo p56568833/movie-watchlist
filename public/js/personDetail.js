@@ -4,14 +4,13 @@ import { esc } from './utils.js';
 import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, getTMDBBase, DEPT_CN } from './constants.js';
 import { api } from './api.js';
 import { showToast } from './toast.js';
-import { loadMovies } from './movies.js';
+import { getCachedMovie, cacheMovieResult, fetchTMDBGenres, getTagline } from './tmdbApi.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 import { goMovie } from './navigation.js';
 
 const TMDB_PROFILE_LARGE = 'https://image.tmdb.org/t/p/h632';
 
 let currentPersonData = null;
-const personMovieCache = new Map();
 
 export function openPersonDetail(person) {
   currentPersonData = person;
@@ -143,15 +142,7 @@ function renderFilmography(credits) {
   const wrote = new Map();
   const acted = new Map();
 
-  const cacheMovie = (m) => {
-    personMovieCache.set(m.id, {
-      title: m.title || '',
-      year: m.release_date ? m.release_date.slice(0, 4) : '',
-      poster_path: m.poster_path || '',
-      overview: m.overview || '',
-      vote_average: m.vote_average || 0,
-    });
-  };
+  const cacheMovie = (m) => { cacheMovieResult(m); };
 
   for (const c of credits.crew || []) {
     if (c.job === 'Director' && c.id) { directed.set(c.id, { ...c, title: c.title || '', _roles: ['导演'] }); cacheMovie(c); }
@@ -199,7 +190,7 @@ function renderFilmography(credits) {
     const item = e.target.closest('.person-movie-item');
     if (item) {
       const tmdbId = Number(item.dataset.tmdbId);
-      const cached = personMovieCache.get(tmdbId);
+      const cached = getCachedMovie(tmdbId);
       if (cached) {
         push({ type: 'person', id: currentPersonData.id, name: currentPersonData.name });
         goMovie({ tmdb_id: tmdbId, title: cached.title, year: cached.year, poster_path: cached.poster_path });
@@ -240,25 +231,24 @@ function renderMovieItem(m, state) {
 async function addPersonMovie(btn) {
   const item = btn.closest('.person-movie-item');
   const tmdbId = Number(item.dataset.tmdbId);
-  const cached = personMovieCache.get(tmdbId);
+  const cached = getCachedMovie(tmdbId);
   if (!cached) return;
   btn.textContent = '添加中...'; btn.disabled = true;
   try {
-    let genres = [];
     const state = getState();
-    if (state.tmdbKey) {
-      const gRes = await fetch(`${getTMDBBase()}/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`);
-      if (gRes.ok) { const details = await gRes.json(); genres = (details.genres || []).map(g => g.name); }
-    }
+    const [genres, tagline] = await Promise.all([
+      fetchTMDBGenres(tmdbId),
+      getTagline(tmdbId),
+    ]);
     const rating = cached.vote_average || 0;
     await api(`/api/lists/${state.currentListId}/movies`, {
       method: 'POST',
-      body: JSON.stringify({ title: cached.title, year: cached.year ? Number(cached.year) : null, poster_path: cached.poster_path, tmdb_id: tmdbId, rating, status: 'watched', tags: genres, notes: cached.overview || '' }),
+      body: JSON.stringify({ title: cached.title, year: cached.year ? Number(cached.year) : null, poster_path: cached.poster_path, tmdb_id: tmdbId, rating, status: 'watched', tags: genres, tagline, notes: cached.overview || '' }),
     });
     showToast(`已添加《${cached.title}》`);
     btn.classList.add('added'); btn.textContent = '✓ 已收藏'; btn.disabled = true;
     updateState((draft) => { draft.existingTmdbIds.add(tmdbId); });
-    await loadMovies();
+    updateState(d => { d.moviesVersion++; });
   } catch (err) {
     showToast(err.message || '添加失败', true);
     btn.textContent = '+ 添加'; btn.disabled = false;

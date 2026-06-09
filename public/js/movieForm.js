@@ -3,7 +3,6 @@ import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { showToast } from './toast.js';
 import { esc } from './utils.js';
-import { loadMovies } from './movies.js';
 
 export function openAddModal() {
   updateState((draft) => {
@@ -131,7 +130,7 @@ async function saveMovie(event) {
     }
 
     closeModal();
-    await loadMovies();
+    updateState(d => { d.moviesVersion++; });
   } catch (err) {
     showToast(err.message || '保存失败', true);
   }

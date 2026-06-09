@@ -525,3 +525,23 @@
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+/* Collection banner */
+.detail-collection {
+  padding: 10px 32px;
+  background: rgba(200,55,55,0.07);
+  border-bottom: 1px solid rgba(200,55,55,0.15);
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--gold-dim);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.detail-collection:hover {
+  background: rgba(200,55,55,0.13);
+  color: var(--gold);
+}
+
+.detail-collection.hidden { display: none; }

@@ -1,24 +1,24 @@
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { posterUrl, backdropUrl, esc } from './utils.js';
-import { TMDB_PROFILE_BASE, getTMDBBase } from './constants.js';
+import { TMDB_PROFILE_BASE } from './constants.js';
 import { api } from './api.js';
-import { deleteMovie, loadMovies } from './movies.js';
+import { deleteMovie } from './movies.js';
 import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 import { goPerson } from './navigation.js';
+import { showDeleteConfirm, closeDeleteConfirm } from './deleteConfirm.js';
+import { fetchTMDBMovieWithCredits } from './tmdbApi.js';
 
 let currentDetailMovie = null;
-let _tmdbCredits = null;
 let _lastTmdbData = null;
 
 export async function openDetail(movie) {
   currentDetailMovie = movie;
-  _tmdbCredits = null;
 
   $('#personDetailOverlay').classList.add('hidden');
   $('#detailOverlay').classList.remove('hidden');
-  $('#deleteConfirmOverlay').classList.add('hidden');
+  closeDeleteConfirm();
   updateBackButton();
 
   resetDetail(movie);
@@ -27,8 +27,7 @@ export async function openDetail(movie) {
   const state = getState();
   if (movie.tmdb_id && state.tmdbKey) {
     try {
-      const tmdb = await fetchTMDBDetails(movie.tmdb_id, state.tmdbKey);
-      _tmdbCredits = tmdb.credits;
+      const tmdb = await fetchTMDBMovieWithCredits(movie.tmdb_id);
       renderTMDBDetails(tmdb);
     } catch {
       $('#detailCast').innerHTML = '';
@@ -42,10 +41,9 @@ export async function openDetail(movie) {
 
 export function closeDetail() {
   $('#detailOverlay').classList.add('hidden');
-  $('#deleteConfirmOverlay').classList.add('hidden');
+  closeDeleteConfirm();
   clearStack();
   currentDetailMovie = null;
-  _tmdbCredits = null;
   _lastTmdbData = null;
 }
 
@@ -58,19 +56,13 @@ export function initDetailPanel() {
 
   $('#detailDeleteBtn').addEventListener('click', () => {
     if (!currentDetailMovie) return;
-    $('#deleteConfirmText').innerHTML = `确定删除<strong>《${esc(currentDetailMovie.title)}》</strong>吗？`;
-    $('#deleteConfirmOverlay').classList.remove('hidden');
-  });
-
-  $('#deleteConfirmCancel').addEventListener('click', () => {
-    $('#deleteConfirmOverlay').classList.add('hidden');
-  });
-
-  $('#deleteConfirmBtn').addEventListener('click', async () => {
-    if (!currentDetailMovie) return;
-    await deleteMovie(currentDetailMovie.id);
-    $('#deleteConfirmOverlay').classList.add('hidden');
-    closeDetail();
+    showDeleteConfirm(
+      `确定删除<strong>《${esc(currentDetailMovie.title)}》</strong>吗？`,
+      async () => {
+        await deleteMovie(currentDetailMovie.id);
+        closeDetail();
+      }
+    );
   });
 
   // Add-to-list button
@@ -84,6 +76,7 @@ export function initDetailPanel() {
     const tmdb = _lastTmdbData;
     const tags = (movie.tags?.length ? movie.tags : (tmdb?.genres || []).map(g => g.name));
     const notes = movie.notes || tmdb?.overview || '';
+    const tagline = movie.tagline || tmdb?.tagline || '';
 
     try {
       await api(`/api/lists/${state.currentListId}/movies`, {
@@ -97,12 +90,13 @@ export function initDetailPanel() {
           status: 'watched',
           tags,
           notes,
+          tagline,
         }),
       });
       updateState(draft => { draft.existingTmdbIds.add(movie.tmdb_id); });
       updateCollectButton(true);
+      updateState(d => { d.moviesVersion++; });
       showToast('已添加');
-      loadMovies().catch(() => {});
     } catch (err) {
       showToast(err.message || '添加失败', true);
     }
@@ -115,7 +109,6 @@ function goBack() {
 
   $('#detailOverlay').classList.add('hidden');
   currentDetailMovie = null;
-  _tmdbCredits = null;
 
   if (prev.type === 'person') {
     goPerson({ id: prev.id, name: prev.name });
@@ -137,7 +130,9 @@ function resetDetail(movie) {
   $('#detailTitle').textContent = movie.title;
   $('#detailYear').textContent = movie.year || '';
   $('#detailRuntime').textContent = '';
+  $('#detailCountries').textContent = '';
   $('#detailGenres').textContent = '';
+  $('#detailCollection').classList.add('hidden');
   $('#detailTmdbRating').classList.add('hidden');
   $('#detailTmdbRating').innerHTML = '';
   $('#detailOverview').textContent = '加载中...';
@@ -183,13 +178,6 @@ function renderLocalMovieDetails(movie) {
   }
 }
 
-async function fetchTMDBDetails(tmdbId, tmdbKey) {
-  const url = `${getTMDBBase()}/movie/${tmdbId}?api_key=${tmdbKey}&language=zh-CN&append_to_response=credits`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('TMDB fetch failed');
-  return res.json();
-}
-
 function renderTMDBDetails(tmdb) {
   _lastTmdbData = tmdb;
   const bgUrl = backdropUrl(tmdb) || posterUrl({ poster_path: tmdb.poster_path });
@@ -202,6 +190,12 @@ function renderTMDBDetails(tmdb) {
 
   if (tmdb.release_date) $('#detailYear').textContent = tmdb.release_date.slice(0, 4);
   if (tmdb.runtime) $('#detailRuntime').textContent = `${tmdb.runtime} 分钟`;
+  if (tmdb.production_countries?.length) {
+    const flags = tmdb.production_countries.map(c =>
+      `${countryFlag(c.iso_3166_1)} ${c.name}`
+    ).join('  ');
+    $('#detailCountries').textContent = flags;
+  }
   if (tmdb.genres?.length) {
     $('#detailGenres').textContent = tmdb.genres.map(g => g.name).join(' / ');
     // For uncollected movies without own tags, show TMDB genres as tags
@@ -223,7 +217,7 @@ function renderTMDBDetails(tmdb) {
         body: JSON.stringify({ rating: newRating }),
       }).then(() => {
         if (currentDetailMovie) currentDetailMovie.rating = newRating;
-        loadMovies().catch(() => {});
+        updateState(d => { d.moviesVersion++; });
       }).catch(() => {});
     }
   }
@@ -278,6 +272,20 @@ function renderTMDBDetails(tmdb) {
     });
   };
 
+  // Collection banner
+  const collection = tmdb.belongs_to_collection;
+  if (collection?.name) {
+    $('#detailCollection').innerHTML = `📦 属于 <strong>《${esc(collection.name)}》</strong> 系列`;
+    $('#detailCollection').classList.remove('hidden');
+  }
+
   $('#detailDirector').querySelectorAll('.credits-director').forEach(bindChip);
   $('#detailCast').querySelectorAll('.credits-cast-item').forEach(bindChip);
+}
+
+function countryFlag(iso) {
+  if (!iso || iso.length !== 2) return iso;
+  const a = iso.toUpperCase();
+  return String.fromCodePoint(0x1F1E6 + a.charCodeAt(0) - 65)
+       + String.fromCodePoint(0x1F1E6 + a.charCodeAt(1) - 65);
 }

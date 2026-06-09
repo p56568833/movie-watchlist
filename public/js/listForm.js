@@ -2,7 +2,7 @@ import { api } from './api.js';
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { showToast } from './toast.js';
-import { loadMovies, resetToolbar } from './movies.js';
+import { resetToolbar } from './movies.js';
 import { renderSidebar } from './lists.js';
 
 export function openNewListModal() {
@@ -56,7 +56,7 @@ async function saveList(event) {
     closeListModal();
     renderSidebar();
     resetToolbar();
-    await loadMovies();
+    updateState(d => { d.moviesVersion++; });
     showToast(id ? '片单已更新' : '片单已创建');
   } catch (err) {
     showToast(err.message, true);

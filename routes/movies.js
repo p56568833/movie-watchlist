@@ -45,7 +45,7 @@ router.get('/lists/:listId/movies', async (req, res) => {
 
 router.post('/lists/:listId/movies', async (req, res) => {
   try {
-    const { title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags } = req.body;
+    const { title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags, tagline } = req.body;
     if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
 
     const err = validateRating(rating) || validateStatus(status) || validateYear(year);
@@ -57,7 +57,7 @@ router.post('/lists/:listId/movies', async (req, res) => {
 
     const result = await db.createMovie({
       list_id: listId, title: title.trim(), year, director,
-      poster_url, poster_path, tmdb_id, rating, status, notes, tags,
+      poster_url, poster_path, tmdb_id, rating, status, notes, tags, tagline,
     });
     const movie = await db.getMovieById(result.id);
     movie.tags = safeParseTags(movie.tags);

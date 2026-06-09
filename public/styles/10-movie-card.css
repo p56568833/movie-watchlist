@@ -156,6 +156,21 @@
   color: var(--text-muted);
   margin-top: 8px;
   line-height: 1.5;
+  min-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-tagline {
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-top: 8px;
+  line-height: 1.4;
+  min-height: 2.4em;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
