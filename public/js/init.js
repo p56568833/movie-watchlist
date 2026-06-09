@@ -3,14 +3,15 @@ import { checkAuth, login, register, logout, getUser } from './auth.js';
 import { setupEvents } from './events.js';
 import { loadLists } from './lists.js';
 import { configureMovies } from './movies.js';
-import { openDetail, initDetailPanel, setPersonDetailOpener } from './detailPanel.js';
+import { openDetail, initDetailPanel } from './detailPanel.js';
 import { initDeletePopover } from './deletePopover.js';
 import { initListForm } from './listForm.js';
 import { initMovieForm } from './movieForm.js';
 import { initSettings } from './settings.js';
 import { initTMDBSearch } from './tmdbSearch.js';
-import { initPersonDetail, setMovieDetailOpener, openPersonDetail } from './personDetail.js';
+import { initPersonDetail, openPersonDetail } from './personDetail.js';
 import { $ } from './dom.js';
+import { register } from './navigation.js';
 
 let isLoginMode = true;
 
@@ -93,8 +94,7 @@ async function startApp() {
   }
 
   configureMovies({ onOpenMovie: openDetail });
-  setPersonDetailOpener(openPersonDetail);
-  setMovieDetailOpener(openDetail);
+  register({ openDetail, openPerson: openPersonDetail });
 
   initDeletePopover();
   initDetailPanel();

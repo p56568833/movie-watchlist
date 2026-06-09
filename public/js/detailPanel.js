@@ -6,13 +6,11 @@ import { api } from './api.js';
 import { deleteMovie, loadMovies } from './movies.js';
 import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
+import { goPerson } from './navigation.js';
 
 let currentDetailMovie = null;
 let _tmdbCredits = null;
 let _lastTmdbData = null;
-
-let _openPersonDetail = () => console.warn('[detailPanel] setPersonDetailOpener 未被调用，导演/演员点击无效');
-export function setPersonDetailOpener(fn) { _openPersonDetail = fn; }
 
 export async function openDetail(movie) {
   currentDetailMovie = movie;
@@ -120,7 +118,7 @@ function goBack() {
   _tmdbCredits = null;
 
   if (prev.type === 'person') {
-    if (_openPersonDetail) _openPersonDetail({ id: prev.id, name: prev.name });
+    goPerson({ id: prev.id, name: prev.name });
   } else if (prev.type === 'movie') {
     openDetail(prev.movie);
   }
@@ -273,9 +271,9 @@ function renderTMDBDetails(tmdb) {
       e.stopPropagation();
       const personId = Number(chip.dataset.personId);
       const personName = chip.dataset.personName;
-      if (_openPersonDetail && personId) {
+      if (personId) {
         push({ type: 'movie', movie: { ...currentDetailMovie } });
-        _openPersonDetail({ id: personId, name: personName });
+        goPerson({ id: personId, name: personName });
       }
     });
   };

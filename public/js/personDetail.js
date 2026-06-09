@@ -6,14 +6,12 @@ import { api } from './api.js';
 import { showToast } from './toast.js';
 import { loadMovies } from './movies.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
+import { goMovie } from './navigation.js';
 
 const TMDB_PROFILE_LARGE = 'https://image.tmdb.org/t/p/h632';
 
 let currentPersonData = null;
 const personMovieCache = new Map();
-
-let _openMovieDetail = () => console.warn('[personDetail] setMovieDetailOpener 未被调用，电影跳转无效');
-export function setMovieDetailOpener(fn) { _openMovieDetail = fn; }
 
 export function openPersonDetail(person) {
   currentPersonData = person;
@@ -66,7 +64,7 @@ function goBack() {
   currentPersonData = null;
 
   if (prev.type === 'movie') {
-    if (_openMovieDetail) _openMovieDetail(prev.movie);
+    goMovie(prev.movie);
   } else if (prev.type === 'person') {
     openPersonDetail({ id: prev.id, name: prev.name });
   }
@@ -199,12 +197,12 @@ function renderFilmography(credits) {
     if (btn && !btn.classList.contains('added')) { e.stopPropagation(); await addPersonMovie(btn); return; }
 
     const item = e.target.closest('.person-movie-item');
-    if (item && _openMovieDetail) {
+    if (item) {
       const tmdbId = Number(item.dataset.tmdbId);
       const cached = personMovieCache.get(tmdbId);
       if (cached) {
         push({ type: 'person', id: currentPersonData.id, name: currentPersonData.name });
-        _openMovieDetail({ tmdb_id: tmdbId, title: cached.title, year: cached.year, poster_path: cached.poster_path });
+        goMovie({ tmdb_id: tmdbId, title: cached.title, year: cached.year, poster_path: cached.poster_path });
       }
     }
   };
