@@ -122,12 +122,12 @@ function renderLocalMovieDetails(movie) {
     $('#detailNotesRow').classList.remove('hidden');
   }
   if (movie.director) {
-    $('#detailDirector').innerHTML = `<span class="director-card" style="pointer-events:none">
-      <span class="director-card-accent"></span>
-      <span class="director-card-avatar director-card-avatar-plh">👤</span>
-      <span class="director-card-info">
-        <span class="director-card-name">${esc(movie.director)}</span>
-        <span class="director-card-role">导演</span>
+    $('#detailDirector').innerHTML = `<span class="credits-director" style="pointer-events:none">
+      <span class="credits-accent"></span>
+      <span class="credits-avatar credits-avatar-lg credits-avatar-plh">👤</span>
+      <span class="credits-director-text">
+        <span class="credits-director-name">${esc(movie.director)}</span>
+        <span class="credits-director-role">导演</span>
       </span>
     </span>`;
   }
@@ -163,14 +163,14 @@ function renderTMDBDetails(tmdb) {
     if (directors.length > 0) {
       $('#detailDirector').innerHTML = directors.map(d => {
         const avatarHtml = d.profile_path
-          ? `<img class="director-card-avatar" src="${TMDB_PROFILE_BASE}${d.profile_path}" alt="" loading="lazy">`
-          : '<span class="director-card-avatar director-card-avatar-plh">👤</span>';
-        return `<button class="director-card" data-person-id="${d.id}" data-person-name="${esc(d.name)}">
-          <span class="director-card-accent"></span>
+          ? `<img class="credits-avatar credits-avatar-lg" src="${TMDB_PROFILE_BASE}${d.profile_path}" alt="" loading="lazy">`
+          : '<span class="credits-avatar credits-avatar-lg credits-avatar-plh">👤</span>';
+        return `<button class="credits-director" data-person-id="${d.id}" data-person-name="${esc(d.name)}">
+          <span class="credits-accent"></span>
           ${avatarHtml}
-          <span class="director-card-info">
-            <span class="director-card-name">${esc(d.name)}</span>
-            <span class="director-card-role">导演</span>
+          <span class="credits-director-text">
+            <span class="credits-director-name">${esc(d.name)}</span>
+            <span class="credits-director-role">导演</span>
           </span>
         </button>`;
       }).join('');
@@ -178,13 +178,15 @@ function renderTMDBDetails(tmdb) {
   }
 
   if (tmdb.credits?.cast?.length) {
-    $('#detailCast').innerHTML = tmdb.credits.cast.slice(0, 12).map(p => {
+    $('#detailCast').innerHTML = tmdb.credits.cast.slice(0, 12).map((p, i) => {
       const avatarHtml = p.profile_path
-        ? `<img class="cast-avatar" src="${TMDB_PROFILE_BASE}${p.profile_path}" alt="" loading="lazy">`
-        : '<span class="cast-avatar cast-avatar-plh">👤</span>';
-      return `<button class="cast-chip" data-person-id="${p.id}" data-person-name="${esc(p.name)}">
-        <span class="cast-chip-avatar-wrap">${avatarHtml}</span>
-        <span class="cast-chip-name">${esc(p.name)}</span>
+        ? `<img class="credits-avatar credits-avatar-sm" src="${TMDB_PROFILE_BASE}${p.profile_path}" alt="" loading="lazy">`
+        : '<span class="credits-avatar credits-avatar-sm credits-avatar-plh">👤</span>';
+      const character = p.character ? `<span class="credits-cast-role">${esc(p.character)}</span>` : '';
+      return `<button class="credits-cast-item" data-person-id="${p.id}" data-person-name="${esc(p.name)}">
+        ${avatarHtml}
+        <span class="credits-cast-name">${esc(p.name)}</span>
+        ${character}
       </button>`;
     }).join('');
   } else {
@@ -206,6 +208,6 @@ function renderTMDBDetails(tmdb) {
     });
   };
 
-  $('#detailDirector').querySelectorAll('.director-card').forEach(bindChip);
-  $('#detailCast').querySelectorAll('.cast-chip').forEach(bindChip);
+  $('#detailDirector').querySelectorAll('.credits-director').forEach(bindChip);
+  $('#detailCast').querySelectorAll('.credits-cast-item').forEach(bindChip);
 }
