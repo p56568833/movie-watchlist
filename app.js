@@ -56,7 +56,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (existing) return res.status(409).json({ error: '用户名已存在' });
 
     const user = await db.createUser(username.trim(), password);
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET);
     res.status(201).json({ token, user });
   } catch (err) {
     console.error(err);
@@ -72,7 +72,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await db.verifyLogin(username, password);
     if (!user) return res.status(401).json({ error: '用户名或密码错误' });
 
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET);
     res.json({ token, user });
   } catch (err) {
     console.error(err);
