@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const db = require('./db');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'mw-secret-change-in-production';
 const app = express();
 const errMsg = (err, fallback) =>
   process.env.NODE_ENV === 'production' ? fallback : (err.message || fallback);
@@ -15,20 +17,79 @@ app.use(express.static(path.join(__dirname, 'public'), {
   },
 }));
 
-// Optional token auth — only active when AUTH_TOKEN env is set
-const AUTH_TOKEN = process.env.AUTH_TOKEN;
-if (AUTH_TOKEN) {
-  const PUBLIC_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-  app.use('/api', (req, res, next) => {
-    if (PUBLIC_METHODS.has(req.method)) return next();
-    const auth = req.headers.authorization;
-    if (!auth || auth !== `Bearer ${AUTH_TOKEN}`) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+// ── JWT Auth middleware ───────────────────────────────
+
+const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register', '/api/tmdb'];
+
+function authMiddleware(req, res, next) {
+  // Skip public paths (mounted under /api, so req.path has /api stripped)
+  if (req.path.startsWith('/auth/') || req.path.startsWith('/tmdb/') || req.originalUrl === '/health') {
+    return next();
+  }
+
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: '请先登录' });
+  }
+
+  try {
+    const token = header.slice(7);
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.userId = payload.id;
     next();
-  });
-  console.log('🔐 API 写操作已启用 TOKEN 认证');
+  } catch {
+    return res.status(401).json({ error: '登录已过期，请重新登录' });
+  }
 }
+
+app.use('/api', authMiddleware);
+
+// ── Auth routes ───────────────────────────────────────
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !username.trim()) return res.status(400).json({ error: '用户名不能为空' });
+    if (!password || password.length < 3) return res.status(400).json({ error: '密码至少3位' });
+
+    const existing = await db.getUserByUsername(username.trim());
+    if (existing) return res.status(409).json({ error: '用户名已存在' });
+
+    const user = await db.createUser(username.trim(), password);
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
+    res.status(201).json({ token, user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '注册失败' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: '请输入用户名和密码' });
+
+    const user = await db.verifyLogin(username, password);
+    if (!user) return res.status(401).json({ error: '用户名或密码错误' });
+
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '登录失败' });
+  }
+});
+
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const user = await db.getUserById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
 
 // ── TMDB Proxy ────────────────────────────────────────
 
@@ -52,14 +113,14 @@ app.get('/api/tmdb/:path(*)', async (req, res) => {
   }
 });
 
-// Health check (for Railway)
+// Health check
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// ── Lists ─────────────────────────────────────────────
+// ── Lists (user-scoped) ───────────────────────────────
 
 app.get('/api/lists', async (req, res) => {
   try {
-    const lists = await db.getAllLists();
+    const lists = await db.getAllLists(req.userId);
     res.json(lists);
   } catch (err) {
     console.error(err);
@@ -71,7 +132,7 @@ app.post('/api/lists', async (req, res) => {
   try {
     const { name, description } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
-    const list = await db.createList({ name: name.trim(), description });
+    const list = await db.createList({ name: name.trim(), description, userId: req.userId });
     res.status(201).json(list);
   } catch (err) {
     console.error(err);

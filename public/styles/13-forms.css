@@ -62,3 +62,12 @@
 
 .settings-status.success { color: var(--gold); }
 .settings-status.error { color: var(--danger); }
+
+.auth-error {
+  font-size: 0.78rem;
+  color: var(--danger);
+  text-align: center;
+  min-height: 20px;
+}
+
+.auth-error.hidden { display: none; }

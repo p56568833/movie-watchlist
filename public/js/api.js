@@ -1,11 +1,13 @@
-export async function api(path, options = {}) {
-  let res;
+import { getToken } from './auth.js';
 
+export async function api(path, options = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  let res;
   try {
-    res = await fetch(path, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
-    });
+    res = await fetch(path, { headers, ...options });
   } catch (err) {
     console.error('API fetch error:', err);
     throw new Error('网络连接失败，请检查 WiFi 或刷新重试');
