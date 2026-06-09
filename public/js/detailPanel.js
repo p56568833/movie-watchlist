@@ -122,7 +122,7 @@ function renderLocalMovieDetails(movie) {
     $('#detailNotesRow').classList.remove('hidden');
   }
   if (movie.director) {
-    $('#detailDirector').innerHTML = `<strong>导演</strong> ${esc(movie.director)}`;
+    $('#detailDirector').innerHTML = `<span class="cast-chip"><span class="cast-avatar-placeholder">👤</span><span class="cast-chip-name">${esc(movie.director)}</span></span>`;
   }
 }
 
@@ -154,7 +154,7 @@ function renderTMDBDetails(tmdb) {
   if (tmdb.credits?.crew) {
     const directors = tmdb.credits.crew.filter(p => p.job === 'Director');
     if (directors.length > 0) {
-      $('#detailDirector').innerHTML = '<strong>导演</strong>' + directors.map(d => {
+      $('#detailDirector').innerHTML = directors.map(d => {
         const avatarHtml = d.profile_path
           ? `<img class="director-avatar" src="${TMDB_PROFILE_BASE}${d.profile_path}" alt="">`
           : '<span class="director-avatar-placeholder">👤</span>';
