@@ -193,11 +193,11 @@ describe('Movies API', () => {
     const res = await fetch(`${baseURL}/api/lists/1/movies`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'Test', rating: 10 }),
+      body: JSON.stringify({ title: 'Test', rating: 11 }),
     });
     assert.strictEqual(res.status, 400);
     const body = await res.json();
-    assert.strictEqual(body.error, 'Rating must be 0-5');
+    assert.strictEqual(body.error, 'Rating must be 0-10');
   });
 
   it('POST /api/lists/:id/movies rejects invalid status', async () => {

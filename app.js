@@ -90,8 +90,8 @@ app.post('/api/lists/:listId/movies', async (req, res) => {
   try {
     const { title, year, director, poster_url, poster_path, tmdb_id, rating, status, notes, tags } = req.body;
     if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
-    if (rating !== undefined && (typeof rating !== 'number' || rating < 0 || rating > 5))
-      return res.status(400).json({ error: 'Rating must be 0-5' });
+    if (rating !== undefined && (typeof rating !== 'number' || rating < 0 || rating > 10))
+      return res.status(400).json({ error: 'Rating must be 0-10' });
     if (status && !['want_to_watch', 'watched'].includes(status))
       return res.status(400).json({ error: 'Status must be want_to_watch or watched' });
     if (year !== undefined && year !== null && (!Number.isInteger(year) || year < 1888 || year > 2099))
@@ -130,8 +130,8 @@ app.get('/api/movies/:id', async (req, res) => {
 app.put('/api/movies/:id', async (req, res) => {
   try {
     const { rating, status, year } = req.body;
-    if (rating !== undefined && (typeof rating !== 'number' || rating < 0 || rating > 5))
-      return res.status(400).json({ error: 'Rating must be 0-5' });
+    if (rating !== undefined && (typeof rating !== 'number' || rating < 0 || rating > 10))
+      return res.status(400).json({ error: 'Rating must be 0-10' });
     if (status && !['want_to_watch', 'watched'].includes(status))
       return res.status(400).json({ error: 'Status must be want_to_watch or watched' });
     if (year !== undefined && year !== null && (!Number.isInteger(year) || year < 1888 || year > 2099))

@@ -95,10 +95,7 @@
   .card-rating {
     top: 8px;
     left: 8px;
-    font-size: 0.64rem;
-  }
-  .card-rating .card-rating-star {
-    font-size: 0.55rem;
+    font-size: 0.66rem;
   }
 
   .card-poster {

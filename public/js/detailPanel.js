@@ -1,9 +1,10 @@
 import { $ } from './dom.js';
-import { getState } from './state.js';
+import { getState, updateState } from './state.js';
 import { posterUrl, backdropUrl, esc } from './utils.js';
 import { TMDB_PROFILE_BASE } from './constants.js';
 import { api } from './api.js';
 import { deleteMovie, loadMovies } from './movies.js';
+import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 
 let currentDetailMovie = null;
@@ -71,6 +72,37 @@ export function initDetailPanel() {
     $('#deleteConfirmOverlay').classList.add('hidden');
     closeDetail();
   });
+
+  // Collection button
+  $('#detailCollectBtn').addEventListener('click', async () => {
+    if (!currentDetailMovie) return;
+    const state = getState();
+    const alreadyCollected = currentDetailMovie.id || state.existingTmdbIds.has(currentDetailMovie.tmdb_id);
+    if (alreadyCollected) return;
+
+    const movie = currentDetailMovie;
+    try {
+      await api(`/api/lists/${state.currentListId}/movies`, {
+        method: 'POST',
+        body: JSON.stringify({
+          title: movie.title,
+          year: movie.year || null,
+          poster_path: movie.poster_path || '',
+          tmdb_id: movie.tmdb_id || null,
+          rating: movie.rating || 0,
+          status: 'watched',
+          tags: movie.tags || [],
+          notes: movie.notes || '',
+        }),
+      });
+      updateState(draft => { draft.existingTmdbIds.add(movie.tmdb_id); });
+      updateCollectButton(true);
+      showToast('已收藏');
+      loadMovies().catch(() => {});
+    } catch (err) {
+      showToast(err.message || '收藏失败', true);
+    }
+  });
 }
 
 function goBack() {
@@ -109,6 +141,19 @@ function resetDetail(movie) {
   $('#detailDirector').innerHTML = '';
   $('#detailTagsRow').classList.add('hidden');
   $('#detailNotesRow').classList.add('hidden');
+  updateCollectButton(!!(movie.id || (movie.tmdb_id && getState().existingTmdbIds.has(movie.tmdb_id))));
+}
+
+function updateCollectButton(collected) {
+  const btn = $('#detailCollectBtn');
+  const label = $('#detailCollectLabel');
+  if (collected) {
+    btn.classList.add('collected');
+    label.textContent = '已收藏';
+  } else {
+    btn.classList.remove('collected');
+    label.textContent = '收藏';
+  }
 }
 
 function renderLocalMovieDetails(movie) {
@@ -160,7 +205,7 @@ function renderTMDBDetails(tmdb) {
 
     // Lazy backfill: persist TMDB rating for cards that don't have one yet
     if (currentDetailMovie && !currentDetailMovie.rating && tmdb.vote_average) {
-      const newRating = Math.round(tmdb.vote_average / 2);
+      const newRating = tmdb.vote_average;
       api(`/api/movies/${currentDetailMovie.id}`, {
         method: 'PUT',
         body: JSON.stringify({ rating: newRating }),

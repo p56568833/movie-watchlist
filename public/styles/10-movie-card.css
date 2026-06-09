@@ -33,22 +33,16 @@
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 3px;
   padding: 2px 7px;
   background: rgba(8,8,8,0.78);
   border-radius: 3px;
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   line-height: 1.4;
   pointer-events: none;
-}
-
-.card-rating .card-rating-star {
-  color: rgba(200,55,55,0.8);
-  font-size: 0.6rem;
 }
 
 .card-rating.score-0 { display: none; }

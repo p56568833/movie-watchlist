@@ -241,7 +241,7 @@ async function addMovieFromDropdown(event) {
         year: cached.year ? Number(cached.year) : null,
         poster_path: cached.poster_path,
         tmdb_id: tmdbId,
-        rating: cached.vote_average ? Math.round(cached.vote_average / 2) : 0,
+        rating: cached.vote_average || 0,
         status: 'watched',
         tags: genres,
         notes: cached.overview || '',

@@ -252,7 +252,7 @@ async function addPersonMovie(btn) {
       const gRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${state.tmdbKey}&language=zh-CN`);
       if (gRes.ok) { const details = await gRes.json(); genres = (details.genres || []).map(g => g.name); }
     }
-    const rating = cached.vote_average ? Math.round(cached.vote_average / 2) : 0;
+    const rating = cached.vote_average || 0;
     await api(`/api/lists/${state.currentListId}/movies`, {
       method: 'POST',
       body: JSON.stringify({ title: cached.title, year: cached.year ? Number(cached.year) : null, poster_path: cached.poster_path, tmdb_id: tmdbId, rating, status: 'watched', tags: genres, notes: cached.overview || '' }),

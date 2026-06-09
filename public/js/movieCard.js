@@ -22,7 +22,10 @@ export function createMovieCard(movie, index, handlers) {
   if (movie.rating > 0) {
     const rating = document.createElement('div');
     rating.className = 'card-rating';
-    rating.innerHTML = `<span class="card-rating-star">★</span>${movie.rating}`;
+    const score = Number(movie.rating) === Math.floor(movie.rating)
+      ? movie.rating
+      : Number(movie.rating).toFixed(1);
+    rating.textContent = score;
     card.appendChild(rating);
   }
 
