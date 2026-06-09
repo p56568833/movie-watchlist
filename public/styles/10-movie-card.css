@@ -249,3 +249,38 @@
   font-weight: 700;
   user-select: none;
 }
+
+/* ── Add Movie Card ────────────────────────────────── */
+.card-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  background: rgba(20, 18, 18, 0.25);
+  border: 1px solid rgba(200, 55, 55, 0.10);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.card-add:hover {
+  border-color: rgba(200, 55, 55, 0.25);
+  background: rgba(25, 22, 22, 0.35);
+  box-shadow: 0 0 30px rgba(200, 55, 55, 0.06);
+}
+
+.card-add-plus {
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: rgba(200, 55, 55, 0.35);
+  line-height: 1;
+  user-select: none;
+  transition: color 200ms ease, text-shadow 200ms ease;
+}
+
+.card-add:hover .card-add-plus {
+  color: rgba(200, 55, 55, 0.50);
+  text-shadow: 0 0 18px rgba(200, 55, 55, 0.12);
+}

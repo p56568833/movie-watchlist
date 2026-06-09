@@ -69,6 +69,16 @@ function renderMovies() {
         onTag: filterByTag,
       }));
     });
+
+    // Add card placeholder — scrolls to TMDB search bar
+    const addCard = document.createElement('div');
+    addCard.className = 'card-add';
+    addCard.innerHTML = '<span class="card-add-plus">+</span>';
+    addCard.addEventListener('click', () => {
+      const search = document.getElementById('tmdbSearch');
+      if (search) search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    grid.appendChild(addCard);
   }
 
   updateTagFilterUI();

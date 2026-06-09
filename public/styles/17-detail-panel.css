@@ -177,31 +177,12 @@
 
 .detail-tmdb-rating.hidden { display: none; }
 
-/* User section */
-.detail-user-section {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--metal-edge);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-bottom: 16px;
-}
-
-.detail-user-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 4px 0;
-}
-
-.detail-user-row + .detail-user-row { border-top: 1px solid rgba(255,255,255,0.03); margin-top: 4px; padding-top: 8px; }
-
-.detail-user-label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  min-width: 60px;
-  flex-shrink: 0;
-}
+/* ── Tags & Notes (within detail-section) ──────────── */
 
 .detail-user-tags {
-  display: flex; flex-wrap: wrap; gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .detail-user-tags .detail-tag {
@@ -214,12 +195,13 @@
 }
 
 .detail-user-notes {
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  line-height: 1.5;
+  font-size: 0.85rem;
+  color: #b5ada5;
+  line-height: 1.7;
+  margin: 0;
 }
 
-.detail-user-row.hidden { display: none; }
+.detail-section.hidden { display: none; }
 
 /* ═══════════════════════════════════════════════════════
    Credits Panel — Editorial · Typography-driven
@@ -228,7 +210,7 @@
 
 /* ── Section spacing ────────────────────────────────── */
 .detail-section {
-  margin-bottom: 36px;
+  margin-bottom: 20px;
 }
 
 /* ── Section header ─────────────────────────────────── */
@@ -242,7 +224,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .detail-section-title::after {

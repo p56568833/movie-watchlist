@@ -140,8 +140,8 @@ function resetDetail(movie) {
   $('#detailSimilarSection').style.display = 'none';
   $('#detailCast').innerHTML = '<span class="detail-loading">加载中...</span>';
   $('#detailDirector').innerHTML = '';
-  $('#detailTagsRow').classList.add('hidden');
-  $('#detailNotesRow').classList.add('hidden');
+  $('#detailTagsSection').classList.add('hidden');
+  $('#detailNotesSection').classList.add('hidden');
   updateCollectButton(!!(movie.id || (movie.tmdb_id && getState().existingTmdbIds.has(movie.tmdb_id))));
 }
 
@@ -162,11 +162,11 @@ function renderLocalMovieDetails(movie) {
   const tags = Array.isArray(movie.tags) ? movie.tags : [];
   if (tags.length > 0) {
     $('#detailTags').innerHTML = tags.map((tag) => `<span class="detail-tag">${esc(tag)}</span>`).join('');
-    $('#detailTagsRow').classList.remove('hidden');
+    $('#detailTagsSection').classList.remove('hidden');
   }
   if (movie.notes) {
     $('#detailNotes').textContent = movie.notes;
-    $('#detailNotesRow').classList.remove('hidden');
+    $('#detailNotesSection').classList.remove('hidden');
   }
   if (movie.director) {
     $('#detailDirector').innerHTML = `<span class="credits-director" style="pointer-events:none">
@@ -203,7 +203,7 @@ function renderTMDBDetails(tmdb) {
     // For uncollected movies without own tags, show TMDB genres as tags
     if (currentDetailMovie && !currentDetailMovie.tags?.length) {
       $('#detailTags').innerHTML = tmdb.genres.map(g => `<span class="detail-tag">${esc(g.name)}</span>`).join('');
-      $('#detailTagsRow').classList.remove('hidden');
+      $('#detailTagsSection').classList.remove('hidden');
     }
   }
 
