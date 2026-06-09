@@ -83,6 +83,8 @@ async function handleAuth(e) {
 }
 
 async function startApp() {
+  hideAuthModal();
+
   const user = getUser();
   if (user) {
     $('#sidebarUser').textContent = user.username;
