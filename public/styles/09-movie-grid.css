@@ -5,5 +5,4 @@
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 24px;
   flex: 1;
-  align-items: start;
 }
