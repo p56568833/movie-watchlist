@@ -15,6 +15,8 @@ export function openAddModal() {
   $('#movieForm').reset();
   $('#formMovieId').value = '';
   $('#formYear').value = '';
+  $('#formStatus').value = 'watched';
+  $('#formRating').value = '0';
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
   $('#formTitle').focus();
@@ -31,6 +33,8 @@ export function openEditModal(movie) {
   $('#formTitle').value = movie.title;
   $('#formYear').value = movie.year || '';
   $('#formDirector').value = movie.director || '';
+  $('#formStatus').value = movie.status || 'watched';
+  $('#formRating').value = movie.rating ?? 0;
   $('#formNotes').value = movie.notes || '';
   renderFormTags();
   $('#modalOverlay').classList.remove('hidden');
@@ -103,8 +107,8 @@ async function saveMovie(event) {
     title,
     year: $('#formYear').value ? Number($('#formYear').value) : null,
     director: $('#formDirector').value.trim(),
-    rating: 0,
-    status: 'watched',
+    rating: Number($('#formRating').value),
+    status: $('#formStatus').value,
     notes: $('#formNotes').value.trim(),
     tags: state.formTags,
     poster_path: '',

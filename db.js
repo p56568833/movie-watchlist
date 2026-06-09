@@ -271,6 +271,12 @@ async function updateMovie(id, fields) {
   const existing = await getMovieById(id);
   if (!existing) return null;
 
+  // Validate list_id if changing lists
+  if (fields.list_id !== undefined) {
+    const targetList = await getListById(fields.list_id);
+    if (!targetList) throw new Error('目标片单不存在');
+  }
+
   const set = (key, fallback) => fields[key] !== undefined ? fields[key] : existing[key];
   const title = set('title');
   const year = set('year');

@@ -1,19 +1,18 @@
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { esc } from './utils.js';
-import { TMDB_POSTER_BASE } from './constants.js';
+import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, DEPT_CN } from './constants.js';
 import { api } from './api.js';
 import { showToast } from './toast.js';
 import { loadMovies } from './movies.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 
-const TMDB_PROFILE_BASE = 'https://image.tmdb.org/t/p/w185';
 const TMDB_PROFILE_LARGE = 'https://image.tmdb.org/t/p/h632';
 
 let currentPersonData = null;
 const personMovieCache = new Map();
 
-let _openMovieDetail = null;
+let _openMovieDetail = () => console.warn('[personDetail] setMovieDetailOpener 未被调用，电影跳转无效');
 export function setMovieDetailOpener(fn) { _openMovieDetail = fn; }
 
 export function openPersonDetail(person) {
@@ -101,15 +100,9 @@ function renderPersonDetails(details) {
   }
 
   // Role tags
-  const deptMap = {
-    'Directing': '导演', 'Acting': '演员', 'Writing': '编剧',
-    'Production': '制片', 'Editing': '剪辑', 'Camera': '摄影',
-    'Sound': '音效', 'Art': '美术', 'Costume & Make-Up': '服化道',
-    'Crew': '幕后', 'Visual Effects': '视效', 'Lighting': '灯光',
-  };
   const roles = [];
   if (details.known_for_department) {
-    roles.push(deptMap[details.known_for_department] || details.known_for_department);
+    roles.push(DEPT_CN[details.known_for_department] || details.known_for_department);
   }
   if (details.also_known_as?.length && roles.length === 0) {
     roles.push('影人');

@@ -8,7 +8,7 @@ import { push, pop, canGoBack, clearStack } from './detailStack.js';
 let currentDetailMovie = null;
 let _tmdbCredits = null;
 
-let _openPersonDetail = null;
+let _openPersonDetail = () => console.warn('[detailPanel] setPersonDetailOpener 未被调用，导演/演员点击无效');
 export function setPersonDetailOpener(fn) { _openPersonDetail = fn; }
 
 export async function openDetail(movie) {

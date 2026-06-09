@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, TMDB_SEARCH_URL, TMDB_PERSON_SEARCH_URL } from './constants.js';
+import { TMDB_POSTER_BASE, TMDB_PROFILE_BASE, TMDB_SEARCH_URL, TMDB_PERSON_SEARCH_URL, DEPT_CN } from './constants.js';
 import { $ } from './dom.js';
 import { getState, updateState } from './state.js';
 import { showToast } from './toast.js';
@@ -12,13 +12,6 @@ import { openDetail } from './detailPanel.js';
 let tmdbTimer;
 const tmdbSearchCache = new Map();
 let lastPersons = [];
-
-const DEPT_CN = {
-  'Directing': '导演', 'Acting': '演员', 'Writing': '编剧',
-  'Production': '制片', 'Editing': '剪辑', 'Camera': '摄影',
-  'Sound': '音效', 'Art': '美术', 'Costume & Make-Up': '服化道',
-  'Crew': '幕后', 'Visual Effects': '视效', 'Lighting': '灯光',
-};
 
 export function initTMDBSearch() {
   const state = getState();

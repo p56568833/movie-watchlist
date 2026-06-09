@@ -9,6 +9,21 @@ const errMsg = (err, fallback) =>
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Optional token auth — only active when AUTH_TOKEN env is set
+const AUTH_TOKEN = process.env.AUTH_TOKEN;
+if (AUTH_TOKEN) {
+  const PUBLIC_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+  app.use('/api', (req, res, next) => {
+    if (PUBLIC_METHODS.has(req.method)) return next();
+    const auth = req.headers.authorization;
+    if (!auth || auth !== `Bearer ${AUTH_TOKEN}`) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+  });
+  console.log('🔐 API 写操作已启用 TOKEN 认证');
+}
+
 // Health check (for Railway)
 app.get('/health', (req, res) => res.json({ ok: true }));
 

@@ -79,12 +79,12 @@ movie-watchlist/
 │       ├── 15-toast.css      # Toast
 │       ├── 16-delete-popover.css # 删除确认气泡
 │       ├── 17-detail-panel.css   # 电影详情页
-│       ├── 18-floating-delete.css# (已废弃，保留引用)
 │       ├── 19-responsive.css # 响应式
 │       └── 20-person-detail.css  # 影人详情页
 └── test/
     ├── api.test.js       # API 集成测试（27 项）
-    └── db.test.js        # 数据库单元测试（22 项）
+    ├── db.test.js        # 数据库单元测试（22 项）
+    └── frontend.test.js  # 前端单元测试（25 项）
 ```
 
 ## 快速启动
@@ -93,8 +93,18 @@ movie-watchlist/
 cd movie-watchlist
 npm install
 npm start        # 启动服务 → http://localhost:3000
-npm test         # 运行全部测试（49 项）
+npm test         # 运行全部测试（74 项）
 ```
+
+### 可选：启用 API 认证
+
+设置环境变量 `AUTH_TOKEN` 后，所有写操作（POST/PUT/DELETE）需要携带 `Authorization: Bearer <token>` 头：
+
+```bash
+AUTH_TOKEN=my-secret npm start
+```
+
+不设置该变量则无认证限制（适合局域网个人使用）。
 
 ## 使用指南
 
