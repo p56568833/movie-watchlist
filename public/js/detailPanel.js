@@ -139,6 +139,7 @@ function resetDetail(movie) {
   $('#detailCast').innerHTML = '<span class="detail-loading">加载中...</span>';
   $('#detailDirector').innerHTML = '';
   $('#detailTagsRow').classList.add('hidden');
+  $('#detailNotesRow').classList.add('hidden');
   updateCollectButton(!!(movie.id || (movie.tmdb_id && getState().existingTmdbIds.has(movie.tmdb_id))));
 }
 
@@ -160,6 +161,10 @@ function renderLocalMovieDetails(movie) {
   if (tags.length > 0) {
     $('#detailTags').innerHTML = tags.map((tag) => `<span class="detail-tag">${esc(tag)}</span>`).join('');
     $('#detailTagsRow').classList.remove('hidden');
+  }
+  if (movie.notes) {
+    $('#detailNotes').textContent = movie.notes;
+    $('#detailNotesRow').classList.remove('hidden');
   }
   if (movie.director) {
     $('#detailDirector').innerHTML = `<span class="credits-director" style="pointer-events:none">
@@ -191,7 +196,14 @@ function renderTMDBDetails(tmdb) {
 
   if (tmdb.release_date) $('#detailYear').textContent = tmdb.release_date.slice(0, 4);
   if (tmdb.runtime) $('#detailRuntime').textContent = `${tmdb.runtime} 分钟`;
-  if (tmdb.genres?.length) $('#detailGenres').textContent = tmdb.genres.map(g => g.name).join(' / ');
+  if (tmdb.genres?.length) {
+    $('#detailGenres').textContent = tmdb.genres.map(g => g.name).join(' / ');
+    // For uncollected movies without own tags, show TMDB genres as tags
+    if (currentDetailMovie && !currentDetailMovie.tags?.length) {
+      $('#detailTags').innerHTML = tmdb.genres.map(g => `<span class="detail-tag">${esc(g.name)}</span>`).join('');
+      $('#detailTagsRow').classList.remove('hidden');
+    }
+  }
 
   if (tmdb.vote_average) {
     $('#detailTmdbRating').classList.remove('hidden');
