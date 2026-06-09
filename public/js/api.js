@@ -1,7 +1,7 @@
-import { getToken } from './auth.js';
+const TOKEN_KEY = 'mw_token';
 
 export async function api(path, options = {}) {
-  const token = getToken();
+  const token = localStorage.getItem(TOKEN_KEY);
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
