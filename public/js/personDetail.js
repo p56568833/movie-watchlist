@@ -16,6 +16,7 @@ export function openPersonDetail(person) {
   currentPersonData = person;
   $('#detailOverlay').classList.add('hidden');
   $('#personDetailOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
   updateBackButton();
   $('#personPhoto').src = '';
   $('#personName').textContent = person.name;
@@ -29,6 +30,7 @@ function closePersonDetail() {
   $('#personDetailOverlay').classList.add('hidden');
   clearStack();
   currentPersonData = null;
+  document.body.style.overflow = '';
 }
 
 export function initPersonDetail() {

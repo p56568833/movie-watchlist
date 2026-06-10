@@ -119,13 +119,33 @@ export async function fetchPopularMovies() {
   }
 }
 
+/** 获取系列电影列表（按上映日期排序） */
+export async function fetchCollection(collectionId) {
+  const state = getState();
+  if (!state.tmdbKey) return [];
+
+  try {
+    const url = `${getTMDBBase()}/collection/${collectionId}?api_key=${state.tmdbKey}&language=zh-CN`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const movies = (data.parts || []).sort((a, b) =>
+      (a.release_date || '').localeCompare(b.release_date || '')
+    );
+    movies.forEach(m => cacheMovieResult(m));
+    return { name: data.name, overview: data.overview, movies };
+  } catch {
+    return { name: '', overview: '', movies: [] };
+  }
+}
+
 /** 获取 TMDB 正在热映 */
 export async function fetchNowPlaying() {
   const state = getState();
   if (!state.tmdbKey) return [];
 
   try {
-    const url = `${getTMDBBase()}/movie/now_playing?api_key=${state.tmdbKey}&language=zh-CN&page=1`;
+    const url = `${getTMDBBase()}/movie/now_playing?api_key=${state.tmdbKey}&language=zh-CN&region=CN&page=1`;
     const res = await fetch(url);
     if (!res.ok) return [];
     const data = await res.json();

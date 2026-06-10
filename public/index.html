@@ -113,7 +113,7 @@
       <section class="discover-section hidden" id="discoverSection">
         <div class="discover-tabs">
           <button class="discover-tab active" data-tab="popular">🔥 流行</button>
-          <button class="discover-tab" data-tab="now_playing">🎬 热映</button>
+          <button class="discover-tab" data-tab="now_playing">🇨🇳 大陆热映</button>
         </div>
         <div class="movie-grid" id="discoverGrid"></div>
       </section>
@@ -242,8 +242,6 @@
           </div>
         </div>
 
-        <div class="detail-collection hidden" id="detailCollection"></div>
-
         <!-- Info -->
         <div class="detail-info-col">
           <h1 class="detail-title" id="detailTitle"></h1>
@@ -253,17 +251,14 @@
             <span class="detail-meta" id="detailRuntime"></span>
             <span class="detail-meta-sep">·</span>
             <span class="detail-meta" id="detailCountries"></span>
-            <span class="detail-meta-sep">·</span>
-            <span class="detail-meta" id="detailGenres"></span>
           </div>
 
           <!-- TMDB rating -->
-          <div class="detail-tmdb-rating" id="detailTmdbRating"></div>
+          <div class="detail-tmdb-rating hidden" id="detailTmdbRating"></div>
 
-          <!-- Tags -->
-          <div class="detail-section hidden" id="detailTagsSection">
-            <h3 class="detail-section-title">标签</h3>
-            <div class="detail-user-tags" id="detailTags"></div>
+          <!-- Genres -->
+          <div class="detail-section hidden" id="detailGenresSection">
+            <div class="detail-genres" id="detailGenres"></div>
           </div>
 
           <!-- Notes -->
@@ -282,6 +277,12 @@
           <div class="detail-section">
             <h3 class="detail-section-title">演员</h3>
             <div class="detail-cast" id="detailCast"></div>
+          </div>
+
+          <!-- Collection -->
+          <div class="detail-section hidden" id="detailCollectionSection">
+            <h3 class="detail-section-title">系列</h3>
+            <div class="detail-collection" id="detailCollection"></div>
           </div>
 
           <!-- Similar Movies -->

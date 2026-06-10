@@ -177,22 +177,23 @@
 
 .detail-tmdb-rating.hidden { display: none; }
 
-/* ── Tags & Notes (within detail-section) ──────────── */
+/* ── Genres ─────────────────────────────────────────── */
 
-.detail-user-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.detail-genres {
+  font-size: 0.82rem;
+  color: var(--text-dim);
 }
 
-.detail-user-tags .detail-tag {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.72rem;
-  color: var(--gold);
-  background: rgba(200,55,55,0.08);
-  border: 1px solid var(--gold-dim);
+.detail-genre {
+  color: var(--text-dim);
 }
+
+.detail-genre-sep {
+  margin: 0 6px;
+  color: var(--metal-mid);
+}
+
+/* ── Notes ─────────────────────────────────────────── */
 
 .detail-user-notes {
   font-size: 0.85rem;
@@ -508,25 +509,74 @@
   font-size: 0.9rem;
 }
 
-/* Collection banner */
-.detail-collection {
-  padding: 10px 32px;
-  background: rgba(200,55,55,0.07);
-  border-bottom: 1px solid rgba(200,55,55,0.15);
+/* Collection grid */
+.detail-collection-name {
   font-family: var(--font-serif);
   font-size: 0.85rem;
   font-style: italic;
   color: var(--gold-dim);
+  margin: 0 0 10px 0;
+}
+
+.detail-collection-grid {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--metal-mid) transparent;
+}
+
+.detail-collection-grid::-webkit-scrollbar {
+  height: 4px;
+}
+
+.detail-collection-grid::-webkit-scrollbar-thumb {
+  background: var(--metal-mid);
+  border-radius: 2px;
+}
+
+.detail-collection-item {
+  flex-shrink: 0;
+  width: 120px;
+  text-align: center;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: transform var(--transition);
 }
 
-.detail-collection:hover {
-  background: rgba(200,55,55,0.13);
-  color: var(--gold);
+.detail-collection-item:hover {
+  transform: translateY(-2px);
 }
 
-.detail-collection.hidden { display: none; }
+.detail-collection-poster {
+  width: 120px;
+  height: 180px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--metal-dark);
+  display: block;
+}
+
+.detail-collection-noposter {
+  width: 120px;
+  height: 180px;
+  border-radius: 4px;
+  background: var(--metal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--metal-mid);
+}
+
+.detail-collection-title {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Similar Movies ────────────────────────────────── */
 .detail-similar-grid {

@@ -8,7 +8,16 @@ import { showToast } from './toast.js';
 import { push, pop, canGoBack, clearStack } from './detailStack.js';
 import { goPerson } from './navigation.js';
 import { showDeleteConfirm, closeDeleteConfirm } from './deleteConfirm.js';
-import { fetchTMDBMovieWithCredits, fetchSimilarMovies, getCachedMovie } from './tmdbApi.js';
+import { fetchTMDBMovieWithCredits, fetchSimilarMovies, fetchCollection, getCachedMovie } from './tmdbApi.js';
+
+const COUNTRY_ZH = {
+  US: '美国', GB: '英国', FR: '法国', DE: '德国', IT: '意大利',
+  JP: '日本', KR: '韩国', CN: '中国', HK: '中国香港', TW: '中国台湾',
+  CA: '加拿大', AU: '澳大利亚', NZ: '新西兰', IN: '印度',
+  ES: '西班牙', MX: '墨西哥', BR: '巴西', RU: '俄罗斯',
+  SE: '瑞典', NO: '挪威', DK: '丹麦', NL: '荷兰', BE: '比利时',
+  IE: '爱尔兰', PL: '波兰', CZ: '捷克', AT: '奥地利', CH: '瑞士',
+};
 
 let currentDetailMovie = null;
 let _lastTmdbData = null;
@@ -18,6 +27,8 @@ export async function openDetail(movie) {
 
   $('#personDetailOverlay').classList.add('hidden');
   $('#detailOverlay').classList.remove('hidden');
+  $('.detail-panel').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
   closeDeleteConfirm();
   updateBackButton();
 
@@ -46,6 +57,7 @@ export function closeDetail() {
   clearStack();
   currentDetailMovie = null;
   _lastTmdbData = null;
+  document.body.style.overflow = '';
 }
 
 export function initDetailPanel() {
@@ -132,15 +144,15 @@ function resetDetail(movie) {
   $('#detailYear').textContent = movie.year || '';
   $('#detailRuntime').textContent = '';
   $('#detailCountries').textContent = '';
-  $('#detailGenres').textContent = '';
-  $('#detailCollection').classList.add('hidden');
+  $('#detailGenres').innerHTML = '';
+  $('#detailGenresSection').classList.add('hidden');
+  $('#detailCollectionSection').classList.add('hidden');
   $('#detailTmdbRating').classList.add('hidden');
   $('#detailTmdbRating').innerHTML = '';
   $('#detailSimilar').innerHTML = '';
   $('#detailSimilarSection').style.display = 'none';
   $('#detailCast').innerHTML = '<span class="detail-loading">加载中...</span>';
   $('#detailDirector').innerHTML = '';
-  $('#detailTagsSection').classList.add('hidden');
   $('#detailNotesSection').classList.add('hidden');
   updateCollectButton(!!(movie.id || (movie.tmdb_id && getState().existingTmdbIds.has(movie.tmdb_id))));
 }
@@ -159,11 +171,6 @@ function updateCollectButton(collected) {
 
 function renderLocalMovieDetails(movie) {
   $('#detailBannerPlaceholder').classList.remove('hidden');
-  const tags = Array.isArray(movie.tags) ? movie.tags : [];
-  if (tags.length > 0) {
-    $('#detailTags').innerHTML = tags.map((tag) => `<span class="detail-tag">${esc(tag)}</span>`).join('');
-    $('#detailTagsSection').classList.remove('hidden');
-  }
   if (movie.notes) {
     $('#detailNotes').textContent = movie.notes;
     $('#detailNotesSection').classList.remove('hidden');
@@ -193,23 +200,25 @@ function renderTMDBDetails(tmdb) {
   if (tmdb.release_date) $('#detailYear').textContent = tmdb.release_date.slice(0, 4);
   if (tmdb.runtime) $('#detailRuntime').textContent = `${tmdb.runtime} 分钟`;
   if (tmdb.production_countries?.length) {
-    const flags = tmdb.production_countries.map(c =>
-      `${countryFlag(c.iso_3166_1)} ${c.name}`
-    ).join('  ');
-    $('#detailCountries').textContent = flags;
+    const names = tmdb.production_countries.map(c => COUNTRY_ZH[c.iso_3166_1] || c.name).join(' / ');
+    $('#detailCountries').textContent = names;
   }
   if (tmdb.genres?.length) {
-    $('#detailGenres').textContent = tmdb.genres.map(g => g.name).join(' / ');
-    // For uncollected movies without own tags, show TMDB genres as tags
-    if (currentDetailMovie && !currentDetailMovie.tags?.length) {
-      $('#detailTags').innerHTML = tmdb.genres.map(g => `<span class="detail-tag">${esc(g.name)}</span>`).join('');
-      $('#detailTagsSection').classList.remove('hidden');
-    }
+    $('#detailGenres').innerHTML = tmdb.genres.map(g =>
+      `<span class="detail-genre">${esc(g.name)}</span>`
+    ).join('<span class="detail-genre-sep">·</span>');
+    $('#detailGenresSection').classList.remove('hidden');
+  }
+
+  // Show TMDB overview as 简介 for movies without local notes
+  if (currentDetailMovie && !currentDetailMovie.notes && tmdb.overview) {
+    $('#detailNotes').textContent = tmdb.overview;
+    $('#detailNotesSection').classList.remove('hidden');
   }
 
   if (tmdb.vote_average) {
     $('#detailTmdbRating').classList.remove('hidden');
-    $('#detailTmdbRating').innerHTML = `<span class="tmdb-star">★</span><span class="tmdb-score">${tmdb.vote_average.toFixed(1)}</span><span class="tmdb-votes">(${tmdb.vote_count} 票)</span>`;
+    $('#detailTmdbRating').innerHTML = `<span class="tmdb-star">★</span> <span class="tmdb-score">${tmdb.vote_average.toFixed(1)}</span><span class="tmdb-votes">${tmdb.vote_count.toLocaleString()} 人评价</span>`;
 
     // Lazy backfill: persist TMDB rating for cards that don't have one yet
     if (currentDetailMovie && !currentDetailMovie.rating && tmdb.vote_average) {
@@ -272,22 +281,53 @@ function renderTMDBDetails(tmdb) {
     });
   };
 
-  // Collection banner
+  // Collection — fetch and render series movie cards
   const collection = tmdb.belongs_to_collection;
-  if (collection?.name) {
-    $('#detailCollection').innerHTML = `📦 属于 <strong>《${esc(collection.name)}》</strong> 系列`;
-    $('#detailCollection').classList.remove('hidden');
+  if (collection?.id) {
+    fetchCollection(collection.id).then(({ name, movies }) => {
+      if (!movies.length) return;
+      const container = $('#detailCollection');
+      container.innerHTML = `
+        <p class="detail-collection-name">${esc(name)} · ${movies.length} 部</p>
+        <div class="detail-collection-grid">
+          ${movies.map(m => {
+            const poster = m.poster_path
+              ? `<img class="detail-collection-poster" src="https://image.tmdb.org/t/p/w200${m.poster_path}" alt="" loading="lazy">`
+              : '<div class="detail-collection-noposter">🎬</div>';
+            const year = m.release_date ? m.release_date.slice(0, 4) : '';
+            return `
+              <div class="detail-collection-item" data-tmdb-id="${m.id}">
+                ${poster}
+                <div class="detail-collection-title">${esc(m.title)}${year ? ` (${year})` : ''}</div>
+              </div>`;
+          }).join('')}
+        </div>`;
+      $('#detailCollectionSection').classList.remove('hidden');
+
+      // Click → open detail for collection movie
+      container.onclick = (e) => {
+        const item = e.target.closest('.detail-collection-item');
+        if (item) {
+          const id = Number(item.dataset.tmdbId);
+          const cached = getCachedMovie(id);
+          if (cached) {
+            push({ type: 'movie', movie: { ...currentDetailMovie } });
+            openDetail({ tmdb_id: id, title: cached.title, year: cached.year, poster_path: cached.poster_path });
+          }
+        }
+      };
+
+      // Wheel → horizontal scroll
+      const cGrid = container.querySelector('.detail-collection-grid');
+      cGrid.onwheel = (e) => {
+        e.preventDefault();
+        cGrid.scrollLeft += e.deltaY;
+      };
+    });
   }
 
   $('#detailDirector').querySelectorAll('.credits-director').forEach(bindChip);
   $('#detailCast').querySelectorAll('.credits-cast-item').forEach(bindChip);
-}
-
-function countryFlag(iso) {
-  if (!iso || iso.length !== 2) return iso;
-  const a = iso.toUpperCase();
-  return String.fromCodePoint(0x1F1E6 + a.charCodeAt(0) - 65)
-       + String.fromCodePoint(0x1F1E6 + a.charCodeAt(1) - 65);
 }
 
 async function loadSimilarMovies(tmdbId) {
@@ -322,6 +362,11 @@ async function loadSimilarMovies(tmdbId) {
         openDetail({ tmdb_id: id, title: cached.title, year: cached.year, poster_path: cached.poster_path });
       }
     }
+  };
+
+  container.onwheel = (e) => {
+    e.preventDefault();
+    container.scrollLeft += e.deltaY;
   };
 }
 

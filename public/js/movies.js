@@ -70,7 +70,7 @@ function renderMovies() {
       }));
     });
 
-    // Add card placeholder — scrolls to TMDB search bar
+    // Add card placeholder — scrolls to TMDB search bar; match real card height
     const addCard = document.createElement('div');
     addCard.className = 'card-add';
     addCard.innerHTML = '<span class="card-add-plus">+</span>';
@@ -79,6 +79,12 @@ function renderMovies() {
       if (search) search.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
     grid.appendChild(addCard);
+
+    const firstCard = grid.querySelector('.movie-card');
+    if (firstCard) {
+      addCard.style.height = firstCard.offsetHeight + 'px';
+      addCard.style.width = firstCard.offsetWidth + 'px';
+    }
   }
 
   updateTagFilterUI();
